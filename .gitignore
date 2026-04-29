@@ -1,0 +1,62 @@
+# --- 개인 데이터 ---
+*.xlsx
+
+# --- Flutter / Dart ---
+billionaire/.dart_tool/
+billionaire/.flutter-plugins
+billionaire/.flutter-plugins-dependencies
+billionaire/.metadata
+billionaire/.packages
+billionaire/build/
+billionaire/.pub-cache/
+billionaire/.pub/
+billionaire/coverage/
+billionaire/doc/api/
+billionaire/.fvm/
+
+# --- Android ---
+billionaire/android/.gradle/
+billionaire/android/captures/
+billionaire/android/gradlew
+billionaire/android/gradlew.bat
+billionaire/android/local.properties
+billionaire/android/**/GeneratedPluginRegistrant.java
+billionaire/android/key.properties
+billionaire/android/app/debug
+billionaire/android/app/profile
+billionaire/android/app/release
+*.jks
+*.keystore
+
+# --- iOS ---
+billionaire/ios/.symlinks/
+billionaire/ios/Flutter/Flutter.framework
+billionaire/ios/Flutter/Flutter.podspec
+billionaire/ios/Flutter/App.framework
+billionaire/ios/Flutter/Generated.xcconfig
+billionaire/ios/Flutter/flutter_export_environment.sh
+billionaire/ios/Pods/
+billionaire/ios/Runner.xcworkspace/xcuserdata/
+billionaire/ios/Runner.xcodeproj/xcuserdata/
+billionaire/ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+
+# --- 로그 / 임시 ---
+*.log
+*.swp
+*.bak
+*.tmp
+
+# --- Vercel ---
+.vercel
+
+# --- Claude Code ---
+.claude/

@@ -1,0 +1,367 @@
+import 'package:flutter/material.dart';
+
+import '../auth.dart';
+import '../theme.dart';
+
+const _kCardShadow = [
+  BoxShadow(color: Color(0x0A0F172A), blurRadius: 6, offset: Offset(0, 1)),
+];
+
+/// 화면 상단 공통 헤더: 제목 + 부제 + 우측 액션.
+class PageHeader extends StatelessWidget {
+  const PageHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.actions,
+  });
+  final String title;
+  final String? subtitle;
+  final List<Widget>? actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final acts = actions;
+    final isWide = MediaQuery.sizeOf(context).width >= 700;
+    final titleSize = isWide ? 28.0 : 22.0;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, isWide ? 28 : 20, 20, 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: TextStyle(
+                      fontSize: titleSize,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text,
+                      letterSpacing: -0.01 * titleSize,
+                      height: 1.2,
+                    )),
+                if (subtitle != null && subtitle!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(subtitle!,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.text3,
+                      )),
+                ],
+              ],
+            ),
+          ),
+          Wrap(
+            spacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              if (acts != null) ...acts,
+              PopupMenuButton<String>(
+                tooltip: '계정',
+                icon: const Icon(Icons.person_outline,
+                    color: AppColors.text2),
+                onSelected: (v) {
+                  if (v == 'logout') AuthService.signOut();
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'logout', child: Text('로그아웃')),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 월 이동 버튼.
+class MonthSwitcher extends StatelessWidget {
+  const MonthSwitcher({
+    super.key,
+    required this.label,
+    required this.onPrev,
+    required this.onNext,
+  });
+  final String label;
+  final VoidCallback onPrev;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        boxShadow: _kCardShadow,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            iconSize: 20,
+            visualDensity: VisualDensity.compact,
+            onPressed: onPrev,
+            icon: const Icon(Icons.chevron_left,
+                color: AppColors.text2),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: AppColors.text,
+                )),
+          ),
+          IconButton(
+            iconSize: 20,
+            visualDensity: VisualDensity.compact,
+            onPressed: onNext,
+            icon: const Icon(Icons.chevron_right,
+                color: AppColors.text2),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 카드 컨테이너 — 토스 톤. tight 옵션으로 패딩 줄임.
+class AppCard extends StatelessWidget {
+  const AppCard({
+    super.key,
+    required this.child,
+    this.tight = false,
+    this.padding,
+    this.onTap,
+  });
+  final Widget child;
+  final bool tight;
+  final EdgeInsetsGeometry? padding;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final pad = padding ??
+        EdgeInsets.all(tight ? 14 : 22);
+    final card = Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: _kCardShadow,
+      ),
+      padding: pad,
+      child: child,
+    );
+    if (onTap == null) return card;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        child: card,
+      ),
+    );
+  }
+}
+
+/// 섹션 제목 ("태그 TOP 10" + meta).
+class SectionTitle extends StatelessWidget {
+  const SectionTitle({super.key, required this.title, this.meta});
+  final String title;
+  final String? meta;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(title,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text,
+                letterSpacing: -0.005,
+              )),
+          if (meta != null && meta!.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(meta!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.text3,
+                  )),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 빈 상태 카드.
+class EmptyCard extends StatelessWidget {
+  const EmptyCard({super.key, required this.title, this.body});
+  final String title;
+  final String? body;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+                color: AppColors.text,
+              )),
+          if (body != null) ...[
+            const SizedBox(height: 6),
+            Text(body!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.text3,
+                )),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 토스트 (스낵바).
+void showToast(BuildContext context, String message,
+    {bool error = false}) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: error ? AppColors.danger : AppColors.text,
+      duration: const Duration(seconds: 2),
+    ));
+}
+
+/// 사용자에게 보여줄 에러 메시지로 변환.
+/// "Exception: ", "*Exception: " 같은 개발자용 프리픽스를 제거.
+String errorMessage(Object e) {
+  final s = e is Exception ? e.toString() : '$e';
+  final m = RegExp(r'^[A-Z]\w*(?:Exception|Error): ').firstMatch(s);
+  if (m != null) return s.substring(m.end);
+  if (s.startsWith('Exception: ')) return s.substring(11);
+  return s;
+}
+
+/// 가벼운 확인 다이얼로그.
+Future<bool> confirmDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  String confirmText = '확인',
+  bool danger = false,
+}) async {
+  final r = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      title: Text(title,
+          style: const TextStyle(fontWeight: FontWeight.w700)),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text('취소',
+              style: TextStyle(color: AppColors.text2)),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text(confirmText,
+              style: TextStyle(
+                color: danger ? AppColors.danger : AppColors.primary,
+                fontWeight: FontWeight.w600,
+              )),
+        ),
+      ],
+    ),
+  );
+  return r ?? false;
+}
+
+/// 진행률 바 (예산용). 80% 이상 노란색, 100% 이상 빨간색.
+class ProgressTrack extends StatelessWidget {
+  const ProgressTrack({super.key, required this.percent});
+  final double percent; // 0.0 ~ 1.0+
+
+  @override
+  Widget build(BuildContext context) {
+    final p = percent.clamp(0.0, 1.0);
+    Color color;
+    if (percent >= 1.0) {
+      color = AppColors.danger;
+    } else if (percent >= 0.8) {
+      color = AppColors.warning;
+    } else {
+      color = AppColors.primary;
+    }
+    return LayoutBuilder(
+      builder: (context, c) {
+        final w = c.maxWidth;
+        return Stack(
+          children: [
+            Container(
+              width: w,
+              height: 8,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD1D6DD),
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+            Container(
+              width: w * p,
+              height: 8,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// 단순 라벨/값 배지.
+class Pill extends StatelessWidget {
+  const Pill({super.key, required this.label, this.color, this.bg});
+  final String label;
+  final Color? color;
+  final Color? bg;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg ?? AppColors.primaryWeak,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(label,
+          style: TextStyle(
+            color: color ?? AppColors.primary,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          )),
+    );
+  }
+}

@@ -137,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      '계정 생성은 Supabase 대시보드에서',
+                      '계정 생성 문의',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.text3, fontSize: 12),
                     ),

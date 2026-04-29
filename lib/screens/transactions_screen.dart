@@ -578,8 +578,8 @@ class _SegBtn extends StatelessWidget {
           for (final o in options)
             GestureDetector(
               onTap: () => onChanged(o.value),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(

@@ -280,9 +280,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         Row(
           children: [
             Expanded(
-              child: _CategoryPicker(
+              child: AppDropdown<String>(
                 value: _major,
-                majors: majors,
+                items: [
+                  for (final m in majors)
+                    AppDropdownItem(
+                      value: m,
+                      label: m.isEmpty ? '전체 카테고리' : m,
+                    ),
+                ],
                 onChanged: (v) {
                   setState(() {
                     _major = v;
@@ -536,90 +542,6 @@ class _Chip extends StatelessWidget {
             const SizedBox(width: 6),
             const Icon(Icons.close, size: 14, color: AppColors.text3),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryPicker extends StatelessWidget {
-  const _CategoryPicker({
-    required this.value,
-    required this.majors,
-    required this.onChanged,
-  });
-  final String value;
-  final List<String> majors;
-  final ValueChanged<String> onChanged;
-
-  Future<void> _open(BuildContext context) async {
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-    final button = context.findRenderObject() as RenderBox;
-    final width = button.size.width;
-    final topLeft = button.localToGlobal(
-      Offset(0, button.size.height + 4),
-      ancestor: overlay,
-    );
-    final bottomRight = button.localToGlobal(
-      button.size.bottomRight(Offset.zero),
-      ancestor: overlay,
-    );
-    final position = RelativeRect.fromRect(
-      Rect.fromPoints(topLeft, bottomRight),
-      Offset.zero & overlay.size,
-    );
-    final result = await showMenu<String>(
-      context: context,
-      position: position,
-      color: AppColors.surface,
-      constraints: BoxConstraints.tightFor(width: width),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      items: [
-        for (final m in majors)
-          PopupMenuItem(
-            value: m,
-            child: Text(m.isEmpty ? '전체 카테고리' : m,
-                style: TextStyle(
-                  fontWeight:
-                      m == value ? FontWeight.w700 : FontWeight.w500,
-                  color: m == value ? AppColors.primary : AppColors.text,
-                )),
-          ),
-      ],
-    );
-    if (result != null) onChanged(result);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final label = value.isEmpty ? '전체 카테고리' : value;
-    return Material(
-      color: AppColors.surface2,
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        onTap: () => _open(context),
-        child: Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(label,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.text,
-                    )),
-              ),
-              const Icon(Icons.expand_more,
-                  size: 18, color: AppColors.text3),
-            ],
-          ),
         ),
       ),
     );

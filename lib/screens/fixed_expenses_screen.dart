@@ -465,42 +465,38 @@ class _FixedModalState extends State<_FixedModal> {
                     ),
                     const SizedBox(height: 12),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: DropdownButtonFormField<String>(
-                            initialValue: widget.cats.majors.contains(_major)
+                          child: AppDropdown<String>(
+                            label: '카테고리',
+                            value: widget.cats.majors.contains(_major)
                                 ? _major
-                                : (widget.cats.majors.isNotEmpty
-                                    ? widget.cats.majors.first
-                                    : null),
-                            decoration:
-                                const InputDecoration(labelText: '카테고리'),
+                                : null,
                             items: [
                               for (final m in widget.cats.majors)
-                                DropdownMenuItem(value: m, child: Text(m)),
+                                AppDropdownItem(value: m, label: m),
                             ],
-                            onChanged: (v) {
-                              setState(() {
-                                _major = v ?? '';
-                                _sub = null;
-                              });
-                            },
+                            onChanged: (v) => setState(() {
+                              _major = v;
+                              _sub = null;
+                            }),
                           ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: DropdownButtonFormField<String>(
-                            initialValue: subValues.contains(_sub) ? _sub : '',
-                            decoration:
-                                const InputDecoration(labelText: '태그'),
+                          child: AppDropdown<String>(
+                            label: '태그',
+                            value: _sub ?? '',
                             items: [
                               for (final v in subValues)
-                                DropdownMenuItem(
+                                AppDropdownItem(
                                   value: v,
-                                  child: Text(v.isEmpty ? '(없음)' : v),
+                                  label: v.isEmpty ? '(없음)' : v,
                                 ),
                             ],
-                            onChanged: (v) => setState(() => _sub = v),
+                            onChanged: (v) =>
+                                setState(() => _sub = v.isEmpty ? null : v),
                           ),
                         ),
                       ],

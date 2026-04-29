@@ -51,38 +51,49 @@ class _BudgetAppState extends State<BudgetApp> {
           path: '/login',
           builder: (_, _) => const LoginScreen(),
         ),
-        ShellRoute(
-          builder: (context, state, child) => ShellScreen(child: child),
-          routes: [
-            GoRoute(
-              path: '/dashboard',
-              builder: (_, _) => const DashboardScreen(),
-            ),
-            GoRoute(
-              path: '/transactions',
-              builder: (_, state) {
-                final p = state.uri.queryParameters;
-                return TransactionsScreen(
-                  initialMonth: p['month'],
-                  initialMajor: p['major'],
-                  initialSub: p['sub'],
-                  initialQ: p['q'],
-                  initialFixed: p['fixed'],
-                );
-              },
-            ),
-            GoRoute(
-              path: '/budgets',
-              builder: (_, _) => const BudgetsScreen(),
-            ),
-            GoRoute(
-              path: '/fixed',
-              builder: (_, _) => const FixedExpensesScreen(),
-            ),
-            GoRoute(
-              path: '/categories',
-              builder: (_, _) => const CategoriesScreen(),
-            ),
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) =>
+              ShellScreen(navigationShell: navigationShell),
+          branches: [
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: '/dashboard',
+                builder: (_, _) => const DashboardScreen(),
+              ),
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: '/transactions',
+                builder: (_, state) {
+                  final p = state.uri.queryParameters;
+                  return TransactionsScreen(
+                    initialMonth: p['month'],
+                    initialMajor: p['major'],
+                    initialSub: p['sub'],
+                    initialQ: p['q'],
+                    initialFixed: p['fixed'],
+                  );
+                },
+              ),
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: '/budgets',
+                builder: (_, _) => const BudgetsScreen(),
+              ),
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: '/fixed',
+                builder: (_, _) => const FixedExpensesScreen(),
+              ),
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: '/categories',
+                builder: (_, _) => const CategoriesScreen(),
+              ),
+            ]),
           ],
         ),
       ],

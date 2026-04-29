@@ -391,17 +391,14 @@ class _TxModalState extends State<_TxModal> {
   }
 
   Widget _majorDropdown() {
-    return DropdownButtonFormField<String>(
-      initialValue: widget.cats.majors.contains(_major)
-          ? _major
-          : (widget.cats.majors.isNotEmpty ? widget.cats.majors.first : null),
-      decoration: const InputDecoration(labelText: '카테고리'),
+    final majors = widget.cats.majors;
+    return AppDropdown<String>(
+      label: '카테고리',
+      value: majors.contains(_major) ? _major : null,
       items: [
-        for (final m in widget.cats.majors)
-          DropdownMenuItem(value: m, child: Text(m)),
+        for (final m in majors) AppDropdownItem(value: m, label: m),
       ],
       onChanged: (v) {
-        if (v == null) return;
         setState(() {
           _major = v;
           _sub = null;
@@ -411,19 +408,14 @@ class _TxModalState extends State<_TxModal> {
   }
 
   Widget _subDropdown(List<Category> subs) {
-    final values = ['', ...subs.map((s) => s.sub)];
-    final current = values.contains(_sub) ? _sub : '';
-    return DropdownButtonFormField<String>(
-      initialValue: current,
-      decoration: const InputDecoration(labelText: '태그'),
+    return AppDropdown<String>(
+      label: '태그',
+      value: _sub ?? '',
       items: [
-        for (final v in values)
-          DropdownMenuItem(
-            value: v,
-            child: Text(v.isEmpty ? '(없음)' : v),
-          ),
+        const AppDropdownItem(value: '', label: '(없음)'),
+        for (final s in subs) AppDropdownItem(value: s.sub, label: s.sub),
       ],
-      onChanged: (v) => setState(() => _sub = v),
+      onChanged: (v) => setState(() => _sub = v.isEmpty ? null : v),
     );
   }
 

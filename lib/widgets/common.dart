@@ -57,20 +57,42 @@ class PageHeader extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               if (acts != null) ...acts,
-              PopupMenuButton<String>(
-                tooltip: '계정',
-                icon: const Icon(Icons.person_outline,
-                    color: AppColors.text2),
-                onSelected: (v) {
-                  if (v == 'logout') AuthService.signOut();
-                },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'logout', child: Text('로그아웃')),
-                ],
-              ),
+              const _LogoutButton(),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton();
+
+  Future<void> _confirm(BuildContext context) async {
+    final ok = await confirmDialog(
+      context,
+      title: '로그아웃',
+      message: '정말 로그아웃 할까요?',
+      confirmText: '로그아웃',
+    );
+    if (ok) await AuthService.signOut();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _confirm(context),
+        customBorder: const CircleBorder(),
+        child: const Padding(
+          padding: EdgeInsets.all(8),
+          child: Icon(Icons.logout,
+              size: 20, color: AppColors.text3),
+        ),
       ),
     );
   }
@@ -295,6 +317,127 @@ Future<bool> confirmDialog(
     ),
   );
   return r ?? false;
+}
+
+/// 통일된 드랍다운. TextField 디자인과 매칭, 트리거 바로 아래로 펼쳐짐.
+class AppDropdown<T> extends StatelessWidget {
+  const AppDropdown({
+    super.key,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+    this.label,
+    this.hint,
+    this.placeholder = '선택',
+  });
+  final T? value;
+  final List<AppDropdownItem<T>> items;
+  final ValueChanged<T> onChanged;
+  final String? label;
+  final String? hint;
+  final String placeholder;
+
+  Future<void> _open(BuildContext context) async {
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final button = context.findRenderObject() as RenderBox;
+    final width = button.size.width;
+    final topLeft = button.localToGlobal(
+      Offset(0, button.size.height + 4),
+      ancestor: overlay,
+    );
+    final bottomRight = button.localToGlobal(
+      button.size.bottomRight(Offset.zero),
+      ancestor: overlay,
+    );
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(topLeft, bottomRight),
+      Offset.zero & overlay.size,
+    );
+    final result = await showMenu<T>(
+      context: context,
+      position: position,
+      color: AppColors.surface,
+      constraints: BoxConstraints.tightFor(width: width),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      items: [
+        for (final it in items)
+          PopupMenuItem<T>(
+            value: it.value,
+            child: Text(it.label,
+                style: TextStyle(
+                  fontWeight: it.value == value
+                      ? FontWeight.w700
+                      : FontWeight.w500,
+                  color: it.value == value
+                      ? AppColors.primary
+                      : AppColors.text,
+                )),
+          ),
+      ],
+    );
+    if (result != null) onChanged(result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected =
+        items.where((it) => it.value == value).cast<AppDropdownItem<T>?>().firstOrNull;
+    final display = selected?.label ?? hint ?? placeholder;
+    final isEmpty = selected == null;
+    return Material(
+      color: AppColors.surface2,
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        onTap: () => _open(context),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.line),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (label != null)
+                      Text(label!,
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: AppColors.text3,
+                            height: 1.2,
+                          )),
+                    if (label != null) const SizedBox(height: 2),
+                    Text(display,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: isEmpty ? AppColors.text3 : AppColors.text,
+                        )),
+                  ],
+                ),
+              ),
+              const Icon(Icons.expand_more,
+                  size: 20, color: AppColors.text3),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AppDropdownItem<T> {
+  const AppDropdownItem({required this.value, required this.label});
+  final T value;
+  final String label;
 }
 
 /// 진행률 바 (예산용). 80% 이상 노란색, 100% 이상 빨간색.

@@ -5,7 +5,7 @@
 ## 빠른 시작
 
 ```bash
-cd "C:\billionaire\billionaire"
+cd "C:\billionaire"
 
 # Android 에뮬레이터
 "C:\Users\Public\flutter-sdk\flutter\bin\flutter.bat" run -d emulator-5554
@@ -15,7 +15,7 @@ cd "C:\billionaire\billionaire"
 
 # 프로덕션 웹 빌드 (Vercel 배포용)
 "C:\Users\Public\flutter-sdk\flutter\bin\flutter.bat" build web --release
-# → billionaire/build/web/ 에 정적 파일 생성
+# → build/web/ 에 정적 파일 생성
 ```
 
 `r`/`R` = hot reload / restart. 웹은 hot restart만 안정적, 에셋(폰트 등) 변경은 `q` → 재실행.
@@ -35,47 +35,49 @@ cd "C:\billionaire\billionaire"
 메모리 `supabase_setup.md`에 풀 정보. 핵심:
 - Project ref: `nwndjqgipjlxxoxptusn` (region: ap-northeast-2 / Seoul)
 - URL: `https://nwndjqgipjlxxoxptusn.supabase.co`
-- Anon key는 `billionaire/lib/supabase.dart`에 박혀 있음 (RLS로 보호되니 클라이언트 노출 OK)
+- Anon key는 `lib/supabase.dart`에 박혀 있음 (RLS로 보호되니 클라이언트 노출 OK)
 - 어드민 작업은 Supabase MCP로 (`apply_migration`, `execute_sql`, `list_tables` 등)
 - 사용자 추가/삭제는 MCP에 없음 → Supabase 대시보드에서 직접
 
 ## 폴더 구조
 
+Flutter 프로젝트가 repo 루트. 별도 서브폴더 없음.
+
 ```
 C:\billionaire\
 ├── CLAUDE.md
-├── supabase/schema.sql       # 참고용 스키마 (실제 변경은 MCP 마이그레이션)
-├── 가계부.xlsx               # 사용자 원본 데이터 백업
-└── billionaire/              # Flutter 프로젝트
-    ├── pubspec.yaml          # supabase_flutter, go_router, intl + Pretendard 번들
-    ├── android/, web/
-    ├── assets/fonts/         # Pretendard otf 4종
-    └── lib/
-        ├── main.dart              # GoRouter + Auth gate (refreshListenable)
-        ├── theme.dart             # ThemeData + AppColors/AppRadius
-        ├── supabase.dart          # initSupabase() + sb getter (anon key)
-        ├── auth.dart              # AuthService (signIn/signOut/currentUser)
-        ├── api/
-        │   ├── models.dart        # Tx, Major, Category, Budget, FixedExpense, Dashboard, etc.
-        │   └── api.dart           # Api.instance — Supabase 호출 + _txCache
-        ├── widgets/
-        │   ├── format.dart        # won/smartWon/wonShort/ymLabel/fmtDate
-        │   ├── category_color.dart # 8색 팔레트 + CategoryDot
-        │   ├── common.dart        # PageHeader/MonthSwitcher/AppCard/ProgressTrack/etc.
-        │   ├── kpi_card.dart
-        │   ├── budget_card.dart
-        │   ├── merchant_item.dart
-        │   ├── tx_row.dart
-        │   └── amount_field.dart
-        └── screens/
-            ├── login_screen.dart
-            ├── shell_screen.dart            # 하단 탭 네비 (5탭 통일)
-            ├── dashboard_screen.dart
-            ├── transactions_screen.dart
-            ├── tx_modal.dart                # 거래 추가/수정
-            ├── budgets_screen.dart
-            ├── fixed_expenses_screen.dart
-            └── categories_screen.dart
+├── .github/workflows/deploy.yml  # GitHub Actions: push → Vercel 배포
+├── supabase/schema.sql           # 참고용 스키마 (실제 변경은 MCP 마이그레이션)
+├── pubspec.yaml                  # supabase_flutter, go_router, intl + Pretendard 번들
+├── vercel.json                   # SPA fallback rewrite
+├── android/, web/
+├── assets/fonts/                 # Pretendard otf 4종
+└── lib/
+    ├── main.dart              # GoRouter + Auth gate (refreshListenable)
+    ├── theme.dart             # ThemeData + AppColors/AppRadius
+    ├── supabase.dart          # initSupabase() + sb getter (anon key)
+    ├── auth.dart              # AuthService (signIn/signOut/currentUser)
+    ├── api/
+    │   ├── models.dart        # Tx, Major, Category, Budget, FixedExpense, Dashboard, etc.
+    │   └── api.dart           # Api.instance — Supabase 호출 + _txCache
+    ├── widgets/
+    │   ├── format.dart        # won/smartWon/wonShort/ymLabel/fmtDate
+    │   ├── category_color.dart # 8색 팔레트 + CategoryDot
+    │   ├── common.dart        # PageHeader/MonthSwitcher/AppCard/ProgressTrack/errorMessage/etc.
+    │   ├── kpi_card.dart
+    │   ├── budget_card.dart
+    │   ├── merchant_item.dart
+    │   ├── tx_row.dart
+    │   └── amount_field.dart
+    └── screens/
+        ├── login_screen.dart
+        ├── shell_screen.dart            # 하단 탭 네비 (5탭 통일)
+        ├── dashboard_screen.dart
+        ├── transactions_screen.dart
+        ├── tx_modal.dart                # 거래 추가/수정
+        ├── budgets_screen.dart
+        ├── fixed_expenses_screen.dart
+        └── categories_screen.dart
 ```
 
 ## 데이터 모델 (Supabase / Postgres)
@@ -115,7 +117,7 @@ active (0/1), memo, sort_order, created_at, updated_at
 
 거래 INSERT 시 같은 월/이름/카테고리 조합이면 클라이언트가 중복 방지(skip).
 
-## API 레이어 (`billionaire/lib/api/api.dart`)
+## API 레이어 (`lib/api/api.dart`)
 
 `Api.instance` 싱글톤. 내부에서 supabase-js 직접 호출하고 `_txCache`로 transactions를 캐싱.
 
@@ -197,7 +199,7 @@ AppRadius.sm:10 md:14 lg:18 xl:22
 
 ## 다음 단계 후보
 
-- **Vercel 웹 배포** — `flutter build web --release` → `billionaire/build/web/`을 `vercel deploy --prod` 로 푸시. base href는 `/` 그대로.
+- **Vercel 웹 배포** — main 브랜치 push 시 GitHub Actions가 빌드해서 Vercel로 배포 (`.github/workflows/deploy.yml`). 토큰/ID는 GitHub secrets로.
 - **iOS** — Mac 빌드 환경 필요
 - **Windows desktop** — Visual Studio C++ workload 필요
 - **오프라인 캐시** — 인터넷 없으면 동작 X. 필요시 `drift`로 로컬 캐시 + 백그라운드 sync

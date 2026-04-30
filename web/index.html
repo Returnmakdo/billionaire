@@ -31,6 +31,13 @@
 
   <title>billionaire</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Pretendard 폰트 preload — CanvasKit이 fetch 시작 전에 브라우저가 미리
+       받아서 첫 paint 때 한글 글리프 누락(엑박) 방지 -->
+  <link rel="preload" href="assets/fonts/Pretendard-Regular.otf" as="font" type="font/otf" crossorigin="anonymous">
+  <link rel="preload" href="assets/fonts/Pretendard-Medium.otf" as="font" type="font/otf" crossorigin="anonymous">
+  <link rel="preload" href="assets/fonts/Pretendard-SemiBold.otf" as="font" type="font/otf" crossorigin="anonymous">
+  <link rel="preload" href="assets/fonts/Pretendard-Bold.otf" as="font" type="font/otf" crossorigin="anonymous">
 </head>
 <body>
   <!--

@@ -477,10 +477,13 @@ class Api {
     final txs = await _getAllTx();
     final merchantCounts = <String, int>{};
     final cardCounts = <String, int>{};
+    final byMajorCounts = <String, Map<String, int>>{};
     for (final t in txs) {
       final mer = t.merchant;
       if (mer != null && mer.isNotEmpty) {
         merchantCounts[mer] = (merchantCounts[mer] ?? 0) + 1;
+        final m = byMajorCounts.putIfAbsent(t.majorCategory, () => {});
+        m[mer] = (m[mer] ?? 0) + 1;
       }
       final card = t.card;
       if (card != null && card.isNotEmpty) {
@@ -491,9 +494,16 @@ class Api {
       ..sort((a, b) => b.value.compareTo(a.value));
     final cards = cardCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
+    final byMajor = <String, List<String>>{};
+    byMajorCounts.forEach((maj, m) {
+      final entries = m.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      byMajor[maj] = entries.take(20).map((e) => e.key).toList();
+    });
     return Suggestions(
       merchants: merchants.take(200).map((e) => e.key).toList(),
       cards: cards.take(50).map((e) => e.key).toList(),
+      merchantsByMajor: byMajor,
     );
   }
 

@@ -195,7 +195,13 @@ class SubCategoryStat {
 class Suggestions {
   final List<String> merchants;
   final List<String> cards;
-  const Suggestions({required this.merchants, required this.cards});
+  // 카테고리(major)별 자주 쓴 가맹점. 사용 빈도순.
+  final Map<String, List<String>> merchantsByMajor;
+  const Suggestions({
+    required this.merchants,
+    required this.cards,
+    this.merchantsByMajor = const <String, List<String>>{},
+  });
 }
 
 class CategoriesData {

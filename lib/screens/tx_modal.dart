@@ -263,14 +263,17 @@ class _TxModalState extends State<_TxModal> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    _autocomplete(
+                    _fieldWithChips(
                       controller: _merchant,
                       label: '가맹점',
                       hint: '예: 스타벅스',
-                      options: widget.suggestions.merchants,
+                      options: _merchantSuggestions(),
+                      emptyHint: _major.isEmpty
+                          ? null
+                          : '$_major에 등록된 가맹점이 없어요',
                     ),
                     const SizedBox(height: 12),
-                    _autocomplete(
+                    _fieldWithChips(
                       controller: _card,
                       label: '카드/결제수단',
                       hint: '예: KB, 현대, 현금',
@@ -419,56 +422,100 @@ class _TxModalState extends State<_TxModal> {
     );
   }
 
-  Widget _autocomplete({
+  List<String> _merchantSuggestions() {
+    if (_major.isEmpty) return const [];
+    return widget.suggestions.merchantsByMajor[_major] ?? const [];
+  }
+
+  Widget _fieldWithChips({
     required TextEditingController controller,
     required String label,
     required String hint,
     required List<String> options,
+    String? emptyHint,
   }) {
-    return Autocomplete<String>(
-      initialValue: TextEditingValue(text: controller.text),
-      optionsBuilder: (te) {
-        if (te.text.isEmpty) return const Iterable<String>.empty();
-        final lower = te.text.toLowerCase();
-        return options
-            .where((o) => o.toLowerCase().contains(lower))
-            .take(8);
-      },
-      fieldViewBuilder: (ctx, fieldCtrl, focus, onSubmit) {
-        // 외부 controller와 동기화
-        fieldCtrl.text = controller.text;
-        fieldCtrl.addListener(() => controller.text = fieldCtrl.text);
-        return TextField(
-          controller: fieldCtrl,
-          focusNode: focus,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          controller: controller,
           decoration: InputDecoration(labelText: label, hintText: hint),
-        );
-      },
-      optionsViewBuilder: (ctx, onSelected, opts) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-            child: ConstrainedBox(
-              constraints:
-                  const BoxConstraints(maxHeight: 220, maxWidth: 320),
-              child: ListView(
-                shrinkWrap: true,
-                padding: EdgeInsets.zero,
+          onChanged: (_) => setState(() {}),
+        ),
+        if (options.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
                 children: [
-                  for (final o in opts)
-                    ListTile(
-                      dense: true,
-                      title: Text(o),
-                      onTap: () => onSelected(o),
+                  for (final o in options)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: _PickChip(
+                        label: o,
+                        selected: controller.text == o,
+                        onTap: () => setState(() {
+                          controller.text = o;
+                          controller.selection =
+                              TextSelection.collapsed(offset: o.length);
+                        }),
+                      ),
                     ),
                 ],
               ),
             ),
+          )
+        else if (emptyHint != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Text(
+              emptyHint,
+              style: const TextStyle(fontSize: 11.5, color: AppColors.text4),
+            ),
           ),
-        );
-      },
+      ],
+    );
+  }
+}
+
+class _PickChip extends StatelessWidget {
+  const _PickChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? AppColors.primaryWeak : AppColors.surface2,
+      borderRadius: BorderRadius.circular(99),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(99),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(99),
+            border: Border.all(
+              color: selected ? AppColors.primary : Colors.transparent,
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: selected ? AppColors.primaryStrong : AppColors.text2,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../api/api.dart';
@@ -19,10 +21,33 @@ class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
   _FixedData? _data;
   Object? _error;
 
+  late final Listenable _apiListenable = Listenable.merge([
+    Api.instance.fixedVersion,
+    Api.instance.majorsVersion,
+    Api.instance.categoriesVersion,
+  ]);
+  bool _reloadScheduled = false;
+
   @override
   void initState() {
     super.initState();
+    _apiListenable.addListener(_onApiChanged);
     _reload();
+  }
+
+  @override
+  void dispose() {
+    _apiListenable.removeListener(_onApiChanged);
+    super.dispose();
+  }
+
+  void _onApiChanged() {
+    if (_reloadScheduled || !mounted) return;
+    _reloadScheduled = true;
+    scheduleMicrotask(() {
+      _reloadScheduled = false;
+      if (mounted) _reload();
+    });
   }
 
   Future<void> _reload() async {

@@ -47,6 +47,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   Timer? _qDebounce;
   late final TextEditingController _qCtrl;
 
+  late final Listenable _apiListenable = Listenable.merge([
+    Api.instance.txVersion,
+    Api.instance.majorsVersion,
+    Api.instance.categoriesVersion,
+    Api.instance.fixedVersion,
+  ]);
+  bool _reloadScheduled = false;
+
   @override
   void initState() {
     super.initState();
@@ -56,14 +64,50 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     _q = widget.initialQ ?? '';
     _fixed = widget.initialFixed ?? '';
     _qCtrl = TextEditingController(text: _q);
+    _apiListenable.addListener(_onApiChanged);
     _bootstrap();
   }
 
   @override
+  void didUpdateWidget(TransactionsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 대시보드 등 다른 화면에서 쿼리 파라미터를 바꿔 들어오면
+    // StatefulShellRoute가 같은 State를 유지하므로 여기서 동기화한다.
+    final changed = widget.initialMonth != oldWidget.initialMonth ||
+        widget.initialMajor != oldWidget.initialMajor ||
+        widget.initialSub != oldWidget.initialSub ||
+        widget.initialQ != oldWidget.initialQ ||
+        widget.initialFixed != oldWidget.initialFixed;
+    if (!changed) return;
+    setState(() {
+      if (widget.initialMonth != null && widget.initialMonth!.isNotEmpty) {
+        _month = widget.initialMonth!;
+      }
+      _major = widget.initialMajor ?? '';
+      _sub = widget.initialSub ?? '';
+      _q = widget.initialQ ?? '';
+      _fixed = widget.initialFixed ?? '';
+      _qCtrl.text = _q;
+    });
+    _qDebounce?.cancel();
+    _reload();
+  }
+
+  @override
   void dispose() {
+    _apiListenable.removeListener(_onApiChanged);
     _qDebounce?.cancel();
     _qCtrl.dispose();
     super.dispose();
+  }
+
+  void _onApiChanged() {
+    if (_reloadScheduled || !mounted) return;
+    _reloadScheduled = true;
+    scheduleMicrotask(() {
+      _reloadScheduled = false;
+      if (mounted) _bootstrap();
+    });
   }
 
   Future<void> _bootstrap() async {

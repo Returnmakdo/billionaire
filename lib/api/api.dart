@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth.dart';
@@ -14,7 +15,20 @@ class Api {
 
   // ── transactions 캐시 ───────────────────────────────────────
   List<Tx>? _txCache;
-  void invalidateTx() => _txCache = null;
+
+  /// 데이터가 변경될 때마다 증가하는 버전 노티파이어들. 다른 화면에서
+  /// listen 해서 자기 데이터를 자동 reload 하도록 알림용으로 사용.
+  final ValueNotifier<int> txVersion = ValueNotifier(0);
+  final ValueNotifier<int> majorsVersion = ValueNotifier(0);
+  final ValueNotifier<int> categoriesVersion = ValueNotifier(0);
+  final ValueNotifier<int> budgetsVersion = ValueNotifier(0);
+  final ValueNotifier<int> fixedVersion = ValueNotifier(0);
+
+  void invalidateTx() {
+    _txCache = null;
+    txVersion.value++;
+  }
+
   void invalidateAllCaches() => invalidateTx();
 
   String _uid() {
@@ -178,6 +192,8 @@ class Api {
       'major': clean,
       'monthly_amount': 0,
     });
+    majorsVersion.value++;
+    budgetsVersion.value++;
     return Major(name: clean, sortOrder: next);
   }
 
@@ -201,6 +217,10 @@ class Api {
         .from('fixed_expenses')
         .update({'major': clean}).eq('major', oldName);
     invalidateTx();
+    majorsVersion.value++;
+    categoriesVersion.value++;
+    budgetsVersion.value++;
+    fixedVersion.value++;
   }
 
   Future<void> deleteMajor(String major) async {
@@ -215,6 +235,9 @@ class Api {
     await sb.from('categories').delete().eq('major', major);
     await sb.from('budgets').delete().eq('major', major);
     await sb.from('majors').delete().eq('major', major);
+    majorsVersion.value++;
+    categoriesVersion.value++;
+    budgetsVersion.value++;
   }
 
   // ── categories ──────────────────────────────────────────────
@@ -266,6 +289,7 @@ class Api {
           })
           .select()
           .single();
+      categoriesVersion.value++;
       return Category.fromJson(row);
     } on PostgrestException catch (e) {
       if (e.code == '23505') throw Exception('이미 존재하는 태그입니다.');
@@ -296,6 +320,7 @@ class Api {
         .eq('major_category', curMajor)
         .eq('sub_category', curSub);
     invalidateTx();
+    categoriesVersion.value++;
     return Category(id: id, major: curMajor, sub: newSub);
   }
 
@@ -313,6 +338,7 @@ class Api {
       throw Exception('이 태그를 사용하는 거래가 ${usage.count}건 있어 삭제할 수 없습니다.');
     }
     await sb.from('categories').delete().eq('id', id);
+    categoriesVersion.value++;
   }
 
   // ── budgets ─────────────────────────────────────────────────
@@ -349,6 +375,7 @@ class Api {
         .toList();
     if (rows.isNotEmpty) {
       await sb.from('budgets').upsert(rows, onConflict: 'user_id,major');
+      budgetsVersion.value++;
     }
     return listBudgets();
   }
@@ -557,6 +584,7 @@ class Api {
         .insert(payload)
         .select()
         .single();
+    fixedVersion.value++;
     return FixedExpense.fromJson(row);
   }
 
@@ -586,11 +614,13 @@ class Api {
         .eq('id', id)
         .select()
         .single();
+    fixedVersion.value++;
     return FixedExpense.fromJson(row);
   }
 
   Future<void> deleteFixedExpense(int id) async {
     await sb.from('fixed_expenses').delete().eq('id', id);
+    fixedVersion.value++;
   }
 
   Future<FixedApplyResult> applyFixedExpenses(String month) async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../api/api.dart';
@@ -18,20 +20,41 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   _BudgetsData? _data;
   Object? _error;
   final Map<String, TextEditingController> _ctrls = {};
+  // 서버에서 마지막으로 받은 값. 사용자가 input을 안 건드렸으면(현재 ctrl 값과
+  // 일치) reload 시 새 값으로 동기화하고, 건드렸으면 그대로 둠 (typing clobber 방지).
+  final Map<String, int> _lastLoaded = {};
   bool _saving = false;
+
+  late final Listenable _apiListenable = Listenable.merge([
+    Api.instance.txVersion,
+    Api.instance.majorsVersion,
+    Api.instance.budgetsVersion,
+  ]);
+  bool _reloadScheduled = false;
 
   @override
   void initState() {
     super.initState();
+    _apiListenable.addListener(_onApiChanged);
     _reload();
   }
 
   @override
   void dispose() {
+    _apiListenable.removeListener(_onApiChanged);
     for (final c in _ctrls.values) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  void _onApiChanged() {
+    if (_reloadScheduled || !mounted) return;
+    _reloadScheduled = true;
+    scheduleMicrotask(() {
+      _reloadScheduled = false;
+      if (mounted) _reload();
+    });
   }
 
   Future<void> _reload() async {
@@ -47,18 +70,25 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         for (final c in dash.categories) c.major: c.variableSpent,
       };
 
-      // 컨트롤러 동기화 (재로드 시 새 값으로 교체)
+      // 컨트롤러 동기화: 새 카테고리는 추가, 사라진 건 정리, 사용자가 안 건드린
+      // 입력만 서버 값으로 갱신.
       final keep = <String>{};
       for (final b in budgets) {
         keep.add(b.major);
-        _ctrls.putIfAbsent(
-            b.major, () => TextEditingController());
-        AmountField.setNumber(_ctrls[b.major]!, b.monthlyAmount);
+        final ctrl = _ctrls.putIfAbsent(b.major, () => TextEditingController());
+        final last = _lastLoaded[b.major];
+        final isNew = last == null;
+        final untouched = last != null && AmountField.parse(ctrl) == last;
+        if (isNew || untouched) {
+          AmountField.setNumber(ctrl, b.monthlyAmount);
+        }
+        _lastLoaded[b.major] = b.monthlyAmount;
       }
       final toRemove =
           _ctrls.keys.where((k) => !keep.contains(k)).toList();
       for (final k in toRemove) {
         _ctrls.remove(k)?.dispose();
+        _lastLoaded.remove(k);
       }
       if (!mounted) return;
       setState(() {

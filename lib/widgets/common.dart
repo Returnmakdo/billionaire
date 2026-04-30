@@ -98,20 +98,41 @@ class _LogoutButton extends StatelessWidget {
   }
 }
 
-/// 월 이동 버튼.
+/// 월 이동 버튼. label 탭하면 onTapLabel 호출 (년/월 picker 열기 용).
 class MonthSwitcher extends StatelessWidget {
   const MonthSwitcher({
     super.key,
     required this.label,
     required this.onPrev,
     required this.onNext,
+    this.onTapLabel,
   });
   final String label;
   final VoidCallback onPrev;
   final VoidCallback onNext;
+  final VoidCallback? onTapLabel;
 
   @override
   Widget build(BuildContext context) {
+    final labelChild = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: AppColors.text,
+              )),
+          if (onTapLabel != null) ...[
+            const SizedBox(width: 2),
+            const Icon(Icons.expand_more,
+                size: 16, color: AppColors.text3),
+          ],
+        ],
+      ),
+    );
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -129,15 +150,14 @@ class MonthSwitcher extends StatelessWidget {
             icon: const Icon(Icons.chevron_left,
                 color: AppColors.text2),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: AppColors.text,
-                )),
-          ),
+          if (onTapLabel != null)
+            InkWell(
+              onTap: onTapLabel,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              child: labelChild,
+            )
+          else
+            labelChild,
           IconButton(
             iconSize: 20,
             visualDensity: VisualDensity.compact,

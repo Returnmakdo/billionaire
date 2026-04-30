@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import 'auth.dart';
@@ -107,6 +108,16 @@ class _BudgetAppState extends State<BudgetApp> {
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       routerConfig: _router,
+      locale: const Locale('ko', 'KR'),
+      supportedLocales: const [
+        Locale('ko', 'KR'),
+        Locale('en', 'US'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }

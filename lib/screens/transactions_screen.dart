@@ -7,6 +7,7 @@ import '../api/models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/format.dart';
+import '../widgets/ko_date_picker.dart';
 import '../widgets/tx_row.dart';
 import 'tx_modal.dart';
 
@@ -177,6 +178,17 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     _reload();
   }
 
+  Future<void> _pickMonth() async {
+    final picked = await showKoMonthPicker(
+      context: context,
+      initialYm: _month,
+    );
+    if (picked != null && picked != _month) {
+      setState(() => _month = picked);
+      _reload();
+    }
+  }
+
   void _onQChanged(String v) {
     _qDebounce?.cancel();
     _qDebounce = Timer(const Duration(milliseconds: 250), () {
@@ -271,6 +283,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                           label: ymLabel(_month),
                           onPrev: () => _shift(-1),
                           onNext: () => _shift(1),
+                          onTapLabel: _pickMonth,
                         ),
                       ],
                     ),

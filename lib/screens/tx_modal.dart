@@ -6,6 +6,7 @@ import '../theme.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/common.dart';
 import '../widgets/format.dart';
+import '../widgets/ko_date_picker.dart';
 
 enum TxModalResult { changed, none }
 
@@ -80,9 +81,9 @@ class _TxModalState extends State<_TxModal> {
 
   Future<void> _pickDate() async {
     final initial = DateTime.tryParse(_date.text) ?? DateTime.now();
-    final picked = await showDatePicker(
+    final picked = await showKoDatePicker(
       context: context,
-      initialDate: initial,
+      initial: initial,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );

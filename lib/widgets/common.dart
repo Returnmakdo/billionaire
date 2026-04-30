@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth.dart';
 import '../theme.dart';
@@ -293,12 +294,90 @@ void showToast(BuildContext context, String message,
 }
 
 /// 사용자에게 보여줄 에러 메시지로 변환.
-/// "Exception: ", "*Exception: " 같은 개발자용 프리픽스를 제거.
+/// Supabase Auth/Postgrest 예외는 한글 메시지로 매핑하고, 그 외는 개발자용
+/// 프리픽스("Exception: ", "*Exception: ")를 제거한다.
 String errorMessage(Object e) {
+  if (e is AuthException) return _authMsg(e);
+  if (e is PostgrestException) return _postgrestMsg(e);
   final s = e is Exception ? e.toString() : '$e';
   final m = RegExp(r'^[A-Z]\w*(?:Exception|Error): ').firstMatch(s);
-  if (m != null) return s.substring(m.end);
-  if (s.startsWith('Exception: ')) return s.substring(11);
+  final stripped = m != null
+      ? s.substring(m.end)
+      : (s.startsWith('Exception: ') ? s.substring(11) : s);
+  return _genericTranslate(stripped);
+}
+
+String _authMsg(AuthException e) {
+  switch (e.code) {
+    case 'invalid_credentials':
+      return '이메일 또는 비밀번호가 일치하지 않아요';
+    case 'email_address_invalid':
+      return '올바른 이메일 형식이 아니에요';
+    case 'weak_password':
+      return '비밀번호가 너무 짧아요 (6자 이상)';
+    case 'user_already_exists':
+    case 'email_exists':
+      return '이미 가입된 이메일이에요';
+    case 'over_email_send_rate_limit':
+      return '메일 발송 한도를 초과했어요. 잠시 후 다시 시도해주세요';
+    case 'over_request_rate_limit':
+      return '요청이 너무 많아요. 잠시 후 다시 시도해주세요';
+    case 'email_not_confirmed':
+      return '이메일 확인이 안 됐어요. 메일함을 확인해주세요';
+    case 'signup_disabled':
+      return '현재 회원가입이 비활성화돼 있어요';
+    case 'user_not_found':
+      return '사용자를 찾을 수 없어요';
+  }
+  if (e.statusCode == '429') {
+    return '요청이 너무 많아요. 잠시 후 다시 시도해주세요';
+  }
+  final msg = e.message.toLowerCase();
+  if (msg.contains('rate limit') || msg.contains('too many')) {
+    return '요청이 너무 많아요. 잠시 후 다시 시도해주세요';
+  }
+  if (msg.contains('invalid login') || msg.contains('invalid credentials')) {
+    return '이메일 또는 비밀번호가 일치하지 않아요';
+  }
+  if (msg.contains('already registered') || msg.contains('already exists')) {
+    return '이미 가입된 이메일이에요';
+  }
+  if (msg.contains('email not confirmed')) {
+    return '이메일 확인이 안 됐어요. 메일함을 확인해주세요';
+  }
+  if (msg.contains('network')) {
+    return '네트워크 오류가 발생했어요';
+  }
+  return '문제가 발생했어요. 잠시 후 다시 시도해주세요';
+}
+
+String _postgrestMsg(PostgrestException e) {
+  switch (e.code) {
+    case '23505':
+      return '이미 존재하는 항목이에요';
+    case '23503':
+      return '연결된 데이터가 있어 처리할 수 없어요';
+    case '42501':
+      return '권한이 없어요';
+    case 'PGRST301':
+      return '로그인이 만료됐어요. 다시 로그인해주세요';
+  }
+  return '서버 처리 중 문제가 발생했어요';
+}
+
+String _genericTranslate(String s) {
+  final lower = s.toLowerCase();
+  if (lower.contains('rate limit') || lower.contains('too many requests')) {
+    return '요청이 너무 많아요. 잠시 후 다시 시도해주세요';
+  }
+  if (lower.contains('failed host lookup') ||
+      lower.contains('socketexception') ||
+      lower.contains('network')) {
+    return '네트워크 오류가 발생했어요';
+  }
+  if (lower.contains('timeout')) {
+    return '응답이 지연되고 있어요. 잠시 후 다시 시도해주세요';
+  }
   return s;
 }
 

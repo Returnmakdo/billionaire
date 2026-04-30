@@ -63,6 +63,14 @@ ThemeData buildTheme() {
         borderRadius: BorderRadius.circular(AppRadius.sm),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        borderSide: const BorderSide(color: AppColors.danger, width: 1.2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     ),
     filledButtonTheme: FilledButtonThemeData(

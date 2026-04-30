@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../auth.dart';
 import '../theme.dart';
+import '../widgets/common.dart' show errorMessage;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,13 +15,105 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  final _passConfirmCtrl = TextEditingController();
   bool _busy = false;
+  bool _signupMode = false;
+
+  // 가입 모드일 때 이메일 실시간 중복 체크 상태.
+  Timer? _emailCheckTimer;
+  bool _emailChecking = false;
+  bool _emailExists = false;
+  String? _emailFormatError;
+
+  // 가입 모드 비밀번호 강도 체크.
+  bool _hasMinLength = false;
+  bool _hasLower = false;
+  bool _hasUpper = false;
+  bool _hasDigit = false;
+  bool _hasSymbol = false;
+
+  static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+  bool get _passwordValid =>
+      _hasMinLength && _hasLower && _hasUpper && _hasDigit && _hasSymbol;
+  bool get _passwordsMatch =>
+      _passConfirmCtrl.text.isNotEmpty &&
+      _passCtrl.text == _passConfirmCtrl.text;
 
   @override
   void dispose() {
+    _emailCheckTimer?.cancel();
     _emailCtrl.dispose();
     _passCtrl.dispose();
+    _passConfirmCtrl.dispose();
     super.dispose();
+  }
+
+  void _toggleMode() {
+    setState(() {
+      _signupMode = !_signupMode;
+      _passCtrl.clear();
+      _passConfirmCtrl.clear();
+      _emailCheckTimer?.cancel();
+      _emailChecking = false;
+      _emailExists = false;
+      _emailFormatError = null;
+      _hasMinLength = false;
+      _hasLower = false;
+      _hasUpper = false;
+      _hasDigit = false;
+      _hasSymbol = false;
+    });
+  }
+
+  void _onPasswordChanged(String v) {
+    setState(() {
+      _hasMinLength = v.length >= 8;
+      _hasLower = RegExp(r'[a-z]').hasMatch(v);
+      _hasUpper = RegExp(r'[A-Z]').hasMatch(v);
+      _hasDigit = RegExp(r'\d').hasMatch(v);
+      _hasSymbol = RegExp(r'[^a-zA-Z0-9\s]').hasMatch(v);
+    });
+  }
+
+  void _onEmailChanged(String value) {
+    _emailCheckTimer?.cancel();
+    final email = value.trim();
+    if (!_signupMode || email.isEmpty) {
+      setState(() {
+        _emailChecking = false;
+        _emailExists = false;
+        _emailFormatError = null;
+      });
+      return;
+    }
+    if (!_emailRegex.hasMatch(email)) {
+      setState(() {
+        _emailChecking = false;
+        _emailExists = false;
+        _emailFormatError = '올바른 이메일 형식이 아니에요';
+      });
+      return;
+    }
+    setState(() {
+      _emailFormatError = null;
+      _emailExists = false;
+      _emailChecking = true;
+    });
+    _emailCheckTimer = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        final exists = await AuthService.emailExists(email);
+        if (!mounted || _emailCtrl.text.trim() != email) return;
+        setState(() {
+          _emailChecking = false;
+          _emailExists = exists;
+        });
+      } catch (_) {
+        if (!mounted) return;
+        // 체크 실패해도 가입은 시도 가능. 서버에서 한 번 더 검증함.
+        setState(() => _emailChecking = false);
+      }
+    });
   }
 
   Future<void> _submit() async {
@@ -28,27 +123,91 @@ class _LoginScreenState extends State<LoginScreen> {
       _showError('이메일과 비밀번호를 입력해주세요');
       return;
     }
+    if (_signupMode) {
+      if (_emailFormatError != null) {
+        _showError(_emailFormatError!);
+        return;
+      }
+      if (_emailExists) {
+        _showError('이미 가입된 이메일이에요');
+        return;
+      }
+      if (!_passwordValid) {
+        _showError('비밀번호 조건을 모두 만족해야 해요');
+        return;
+      }
+      if (!_passwordsMatch) {
+        _showError('비밀번호가 일치하지 않아요');
+        return;
+      }
+    }
     setState(() => _busy = true);
     try {
-      await AuthService.signIn(email, password);
+      if (_signupMode) {
+        await AuthService.signUp(email, password);
+      } else {
+        await AuthService.signIn(email, password);
+      }
       // 라우터가 onAuthStateChange로 자동 이동
     } catch (e) {
-      _showError(e.toString().replaceFirst('Exception: ', ''));
+      _showError(errorMessage(e));
       if (mounted) setState(() => _busy = false);
     }
   }
 
+  Widget _passwordChecklist() {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        _ReqChip(label: '8자 이상', met: _hasMinLength),
+        _ReqChip(label: '대문자', met: _hasUpper),
+        _ReqChip(label: '소문자', met: _hasLower),
+        _ReqChip(label: '숫자', met: _hasDigit),
+        _ReqChip(label: '특수문자', met: _hasSymbol),
+      ],
+    );
+  }
+
+  Widget? _emailSuffixIcon() {
+    if (_emailChecking) {
+      return const Padding(
+        padding: EdgeInsets.all(12),
+        child: SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+    if (_emailFormatError != null || _emailExists) {
+      return const Icon(Icons.error_outline,
+          color: AppColors.danger, size: 20);
+    }
+    if (_emailRegex.hasMatch(_emailCtrl.text.trim())) {
+      return const Icon(Icons.check_circle_outline,
+          color: AppColors.success, size: 20);
+    }
+    return null;
+  }
+
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
         content: Text(msg),
         backgroundColor: AppColors.danger,
-      ),
-    );
+      ));
   }
 
   @override
   Widget build(BuildContext context) {
+    final title = _signupMode ? '회원가입' : '로그인';
+    final subtitle =
+        _signupMode ? '이메일·비밀번호로 가입해요' : '이메일·비밀번호로 로그인';
+    final submitLabel = _busy
+        ? (_signupMode ? '가입 중...' : '로그인 중...')
+        : (_signupMode ? '회원가입' : '로그인');
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
@@ -98,16 +257,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    const Text(
-                      '로그인',
+                    Text(
+                      title,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      '이메일·비밀번호로 로그인',
+                    Text(
+                      subtitle,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.text3, fontSize: 14),
+                      style: const TextStyle(color: AppColors.text3, fontSize: 14),
                     ),
                     const SizedBox(height: 24),
                     const _Label('이메일'),
@@ -119,27 +278,98 @@ class _LoginScreenState extends State<LoginScreen> {
                       autocorrect: false,
                       enableSuggestions: false,
                       textInputAction: TextInputAction.next,
+                      onChanged: _onEmailChanged,
+                      decoration: InputDecoration(
+                        errorText: _signupMode
+                            ? (_emailFormatError ??
+                                (_emailExists
+                                    ? '이미 가입된 이메일이에요'
+                                    : null))
+                            : null,
+                        suffixIcon: _signupMode &&
+                                _emailCtrl.text.trim().isNotEmpty
+                            ? _emailSuffixIcon()
+                            : null,
+                      ),
                     ),
                     const SizedBox(height: 14),
                     const _Label('비밀번호'),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _passCtrl,
-                      autofillHints: const [AutofillHints.password],
+                      autofillHints: [
+                        _signupMode
+                            ? AutofillHints.newPassword
+                            : AutofillHints.password,
+                      ],
                       obscureText: true,
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: (_) => _submit(),
+                      textInputAction: _signupMode
+                          ? TextInputAction.next
+                          : TextInputAction.done,
+                      onSubmitted: _signupMode ? null : (_) => _submit(),
+                      onChanged: _signupMode ? _onPasswordChanged : null,
                     ),
+                    if (_signupMode) ...[
+                      const SizedBox(height: 8),
+                      _passwordChecklist(),
+                      const SizedBox(height: 14),
+                      const _Label('비밀번호 확인'),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _passConfirmCtrl,
+                        autofillHints: const [AutofillHints.newPassword],
+                        obscureText: true,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _submit(),
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          errorText: _passConfirmCtrl.text.isNotEmpty &&
+                                  !_passwordsMatch
+                              ? '비밀번호가 일치하지 않아요'
+                              : null,
+                          suffixIcon: _passConfirmCtrl.text.isEmpty
+                              ? null
+                              : (_passwordsMatch
+                                  ? const Icon(Icons.check_circle_outline,
+                                      color: AppColors.success, size: 20)
+                                  : const Icon(Icons.error_outline,
+                                      color: AppColors.danger, size: 20)),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: _busy ? null : _submit,
-                      child: Text(_busy ? '로그인 중...' : '로그인'),
+                      child: Text(submitLabel),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      '계정 생성 문의',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.text3, fontSize: 12),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _signupMode ? '이미 계정이 있으신가요?' : '계정이 없으신가요?',
+                          style: const TextStyle(
+                            color: AppColors.text3,
+                            fontSize: 13,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _busy ? null : _toggleMode,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            minimumSize: const Size(0, 32),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            _signupMode ? '로그인' : '회원가입',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -160,6 +390,42 @@ class _Label extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(fontSize: 13, color: AppColors.text2, fontWeight: FontWeight.w500),
+    );
+  }
+}
+
+class _ReqChip extends StatelessWidget {
+  const _ReqChip({required this.label, required this.met});
+  final String label;
+  final bool met;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: met ? AppColors.primaryWeak : AppColors.surface2,
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            met ? Icons.check_circle : Icons.radio_button_unchecked,
+            size: 13,
+            color: met ? AppColors.primary : AppColors.text4,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: met ? AppColors.primaryStrong : AppColors.text3,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

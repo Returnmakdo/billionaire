@@ -32,6 +32,8 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
 
   cupertino_icons: ^1.0.8
   supabase_flutter: ^2.5.0

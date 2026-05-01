@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase.dart';
 
@@ -26,5 +27,14 @@ class AuthService {
   static Future<bool> emailExists(String email) async {
     final r = await sb.rpc('check_email_exists', params: {'p_email': email});
     return r as bool;
+  }
+
+  /// OAuth 로그인. 웹에선 현재 origin으로 리다이렉트, 모바일은 Site URL 사용.
+  /// 신규 사용자면 자동 가입(트리거가 '기타' 카테고리 시드).
+  static Future<void> signInWithProvider(OAuthProvider provider) async {
+    await sb.auth.signInWithOAuth(
+      provider,
+      redirectTo: kIsWeb ? Uri.base.origin : null,
+    );
   }
 }

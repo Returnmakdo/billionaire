@@ -66,6 +66,13 @@ class _BudgetAppState extends State<BudgetApp> {
         return null;
       },
       routes: [
+        // OAuth 콜백(`/?code=...`) 등 루트 진입 시 인증 상태에 따라 분기
+        GoRoute(
+          path: '/',
+          redirect: (_, _) => AuthService.currentUser != null
+              ? '/dashboard'
+              : '/login',
+        ),
         GoRoute(
           path: '/login',
           builder: (_, _) => const LoginScreen(),

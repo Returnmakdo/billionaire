@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show OAuthProvider;
 import '../auth.dart';
 import '../theme.dart';
 import '../widgets/common.dart' show errorMessage;
@@ -152,6 +154,15 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       _showError(errorMessage(e));
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _oauth(OAuthProvider provider) async {
+    try {
+      await AuthService.signInWithProvider(provider);
+      // 성공 시 브라우저 리다이렉트 → 라우터가 onAuthStateChange로 자동 이동
+    } catch (e) {
+      if (mounted) _showError(errorMessage(e));
     }
   }
 
@@ -342,6 +353,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _busy ? null : _submit,
                       child: Text(submitLabel),
                     ),
+                    const SizedBox(height: 16),
+                    const _OrDivider(),
+                    const SizedBox(height: 16),
+                    _OAuthButton(
+                      label: 'Google로 계속하기',
+                      bg: AppColors.surface,
+                      fg: AppColors.text,
+                      bordered: true,
+                      icon: SvgPicture.asset(
+                        'assets/icons/google_g.svg',
+                        width: 18,
+                        height: 18,
+                      ),
+                      onTap: _busy
+                          ? null
+                          : () => _oauth(OAuthProvider.google),
+                    ),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -390,6 +418,88 @@ class _Label extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(fontSize: 13, color: AppColors.text2, fontWeight: FontWeight.w500),
+    );
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        Expanded(child: Divider(color: AppColors.line2, height: 1)),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            '또는',
+            style: TextStyle(
+              color: AppColors.text3,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(child: Divider(color: AppColors.line2, height: 1)),
+      ],
+    );
+  }
+}
+
+class _OAuthButton extends StatelessWidget {
+  const _OAuthButton({
+    required this.label,
+    required this.bg,
+    required this.fg,
+    required this.onTap,
+    this.icon,
+    this.bordered = false,
+  });
+  final String label;
+  final Color bg;
+  final Color fg;
+  final VoidCallback? onTap;
+  final Widget? icon;
+  final bool bordered;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: Material(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              border: bordered
+                  ? Border.all(color: AppColors.line)
+                  : null,
+            ),
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null) ...[
+                  icon!,
+                  const SizedBox(width: 10),
+                ],
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: fg,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

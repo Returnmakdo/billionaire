@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:go_router/go_router.dart';
@@ -11,6 +10,8 @@ import '../api/models.dart';
 import '../theme.dart';
 import '../utils/csv_download_stub.dart'
     if (dart.library.html) '../utils/csv_download_web.dart';
+import '../utils/is_mobile_stub.dart'
+    if (dart.library.html) '../utils/is_mobile_web.dart';
 import '../utils/nav_back.dart';
 import '../widgets/common.dart';
 import '../widgets/format.dart';
@@ -269,16 +270,16 @@ class _ImportScreenState extends State<ImportScreen> {
             _stepCard(
               step: '1',
               title: '템플릿 받기',
-              body: kIsWeb
+              body: !isMobileEnv()
                   ? '빈 양식 + 예시가 들어있는 CSV 파일을 받으세요. 엑셀에서 열어 거래 내역을 채우면 돼요.'
                   : '템플릿 CSV를 다른 앱(메일·카카오톡·구글드라이브 등)으로 공유해서 PC에서 받을 수 있어요. 또는 아래 PC 웹 URL로 직접 받으세요.',
               action: OutlinedButton.icon(
                 onPressed: _downloadTemplate,
                 icon: Icon(
-                  kIsWeb ? Icons.download : Icons.ios_share,
+                  !isMobileEnv() ? Icons.download : Icons.ios_share,
                   size: 18,
                 ),
-                label: Text(kIsWeb ? '템플릿 받기' : '템플릿 공유'),
+                label: Text(!isMobileEnv() ? '템플릿 받기' : '템플릿 공유'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   side: const BorderSide(
@@ -288,7 +289,7 @@ class _ImportScreenState extends State<ImportScreen> {
                 ),
               ),
             ),
-            if (!kIsWeb) ...[
+            if (isMobileEnv()) ...[
               const SizedBox(height: 8),
               _webUrlCard(),
             ],
@@ -519,39 +520,55 @@ class _ImportScreenState extends State<ImportScreen> {
 
   Widget _webUrlCard() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
-        color: AppColors.surface2,
+        color: AppColors.primaryWeak,
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(color: AppColors.line),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.computer, size: 16, color: AppColors.text2),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: Text(
-              'PC 웹에서도 가능',
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: AppColors.text,
+          Row(
+            children: const [
+              Icon(Icons.lightbulb_outline,
+                  size: 16, color: AppColors.primaryStrong),
+              SizedBox(width: 6),
+              Text(
+                'PC 웹에서 작업하기를 추천해요',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryStrong,
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            '모바일에서도 가능하지만, 엑셀로 거래 정리하는 건 PC에서 훨씬 편해요. 아래 URL을 복사해서 PC 브라우저에 붙여넣으세요.',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.text2,
+              height: 1.5,
             ),
           ),
-          TextButton.icon(
-            onPressed: _copyWebUrl,
-            icon: const Icon(Icons.content_copy, size: 14),
-            label: const Text('URL 복사'),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              textStyle: const TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: _copyWebUrl,
+              icon: const Icon(Icons.content_copy, size: 14),
+              label: const Text('URL 복사'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primaryStrong,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                textStyle: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),

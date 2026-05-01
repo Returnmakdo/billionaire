@@ -154,10 +154,21 @@ class HelpScreen extends StatelessWidget {
             ),
             const _GuideCard(
               icon: Icons.help_outline,
+              title: '다른 가계부에서 데이터 옮기고 싶어요',
+              points: [
+                '설정 → 데이터 가져오기에서 템플릿 CSV 다운로드',
+                '엑셀에서 열어 카드사 명세서 데이터를 양식대로 정리',
+                'UTF-8 CSV로 저장 후 다시 가져오기 → 파일 선택',
+                '새 카테고리/태그가 있으면 자동으로 추가됨',
+              ],
+            ),
+            const _GuideCard(
+              icon: Icons.help_outline,
               title: 'CSV로 백업하고 싶어요',
               points: [
                 '설정 → CSV 내보내기에서 모든 거래 다운로드',
                 '엑셀/구글 시트에서 바로 열림',
+                '같은 양식이라 데이터 가져오기로 다시 import 가능',
               ],
             ),
             const _GuideCard(

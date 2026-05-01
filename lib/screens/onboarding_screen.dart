@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../auth.dart';
 import '../theme.dart';
+import '../utils/nav_back.dart';
 
 /// 첫 로그인 시 4장 PageView로 핵심 기능 소개. 한 번 본 후
 /// user_metadata.onboarding_seen=true 저장 → 다음부터 표시 안 됨.
@@ -59,7 +60,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     if (!mounted) return;
     if (widget.fromHelp) {
-      context.go('/settings/help');
+      // 도움말에서 진입한 경우: history.back()으로 onboarding entry 정리.
+      // (go로 이동하면 history에 새 entry 쌓여 도움말 뒤로가기가 다시 onboarding으로 감)
+      goBackOr(context, '/settings/help');
     } else {
       context.go('/dashboard');
     }

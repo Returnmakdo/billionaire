@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import '../api/api.dart';
 import '../api/models.dart';
 import '../theme.dart';
+import '../widgets/amount_field.dart';
 import '../widgets/common.dart';
 import '../widgets/format.dart';
 import '../widgets/ko_date_picker.dart';
 import '../widgets/tx_row.dart';
+import 'shell_screen.dart' show ShellTabSignals;
 import 'tx_modal.dart';
 
 class TransactionsScreen extends StatefulWidget {
@@ -31,12 +33,25 @@ class TransactionsScreen extends StatefulWidget {
   State<TransactionsScreen> createState() => _TransactionsScreenState();
 }
 
+enum _TxSort {
+  dateDesc('날짜 (최신순)'),
+  dateAsc('날짜 (오래된순)'),
+  amountDesc('금액 (높은순)'),
+  amountAsc('금액 (낮은순)');
+
+  const _TxSort(this.label);
+  final String label;
+}
+
 class _TransactionsScreenState extends State<TransactionsScreen> {
   late String _month;
   String _major = '';
   String _sub = '';
   String _q = '';
   String _fixed = ''; // '', 'true', 'false'
+  int? _minAmount;
+  int? _maxAmount;
+  _TxSort _sort = _TxSort.dateDesc;
 
   CategoriesData? _cats;
   Suggestions? _suggestions;
@@ -66,7 +81,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     _fixed = widget.initialFixed ?? '';
     _qCtrl = TextEditingController(text: _q);
     _apiListenable.addListener(_onApiChanged);
+    ShellTabSignals.transactionsTab.addListener(_onTabPressed);
     _bootstrap();
+  }
+
+  void _onTabPressed() {
+    // 탭 버튼 클릭으로 들어왔을 때 — 필터 모두 초기화. (대시보드 카드
+    // 클릭으로 들어오는 흐름은 didUpdateWidget이 따로 처리하니 영향 X)
+    if (mounted) _clearFilters();
   }
 
   @override
@@ -97,6 +119,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   @override
   void dispose() {
     _apiListenable.removeListener(_onApiChanged);
+    ShellTabSignals.transactionsTab.removeListener(_onTabPressed);
     _qDebounce?.cancel();
     _qCtrl.dispose();
     super.dispose();
@@ -247,9 +270,74 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       _sub = '';
       _q = '';
       _fixed = '';
+      _minAmount = null;
+      _maxAmount = null;
+      _sort = _TxSort.dateDesc;
       _qCtrl.text = '';
     });
     _reload();
+  }
+
+  /// 서버에서 받은 거래에 client-side 추가 필터(금액 범위) + 정렬 적용.
+  List<Tx> _applyExtraFilters(List<Tx> rows) {
+    var filtered = rows;
+    if (_minAmount != null) {
+      filtered = filtered.where((t) => t.amount >= _minAmount!).toList();
+    }
+    if (_maxAmount != null) {
+      filtered = filtered.where((t) => t.amount <= _maxAmount!).toList();
+    }
+    final sorted = [...filtered];
+    switch (_sort) {
+      case _TxSort.dateDesc:
+        sorted.sort((a, b) {
+          final c = b.date.compareTo(a.date);
+          return c != 0 ? c : b.id.compareTo(a.id);
+        });
+        break;
+      case _TxSort.dateAsc:
+        sorted.sort((a, b) {
+          final c = a.date.compareTo(b.date);
+          return c != 0 ? c : a.id.compareTo(b.id);
+        });
+        break;
+      case _TxSort.amountDesc:
+        sorted.sort((a, b) => b.amount.compareTo(a.amount));
+        break;
+      case _TxSort.amountAsc:
+        sorted.sort((a, b) => a.amount.compareTo(b.amount));
+        break;
+    }
+    return sorted;
+  }
+
+  String _amountRangeLabel() {
+    if (_minAmount != null && _maxAmount != null) {
+      return '${won(_minAmount!)} ~ ${won(_maxAmount!)}원';
+    }
+    if (_minAmount != null) return '${won(_minAmount!)}원 이상';
+    if (_maxAmount != null) return '${won(_maxAmount!)}원 이하';
+    return '';
+  }
+
+  Future<void> _openFilterSheet() async {
+    final result = await showModalBottomSheet<_FilterResult>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (_) => _FilterSheet(
+        initialMin: _minAmount,
+        initialMax: _maxAmount,
+        initialSort: _sort,
+      ),
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _minAmount = result.minAmount;
+      _maxAmount = result.maxAmount;
+      _sort = result.sort;
+    });
   }
 
   @override
@@ -291,7 +379,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                       child: _toolbar(cats),
                     ),
-                    if (_sub.isNotEmpty || _q.isNotEmpty)
+                    if (_sub.isNotEmpty ||
+                        _q.isNotEmpty ||
+                        _minAmount != null ||
+                        _maxAmount != null ||
+                        _sort != _TxSort.dateDesc)
                       Padding(
                         padding:
                             const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -308,6 +400,22 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                               _Chip(
                                 label: '검색: $_q',
                                 onClear: _clearFilters,
+                              ),
+                            if (_minAmount != null || _maxAmount != null)
+                              _Chip(
+                                label: _amountRangeLabel(),
+                                onClear: () {
+                                  setState(() {
+                                    _minAmount = null;
+                                    _maxAmount = null;
+                                  });
+                                },
+                              ),
+                            if (_sort != _TxSort.dateDesc)
+                              _Chip(
+                                label: '정렬: ${_sort.label}',
+                                onClear: () =>
+                                    setState(() => _sort = _TxSort.dateDesc),
                               ),
                           ],
                         ),
@@ -368,6 +476,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 _reload();
               },
             ),
+            const SizedBox(width: 6),
+            _FilterIconBtn(
+              active: _minAmount != null ||
+                  _maxAmount != null ||
+                  _sort != _TxSort.dateDesc,
+              onTap: _openFilterSheet,
+            ),
           ],
         ),
       ],
@@ -388,11 +503,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    final rows = _txs!;
+    final rows = _applyExtraFilters(_txs!);
     final hasFilter = _major.isNotEmpty ||
         _sub.isNotEmpty ||
         _q.isNotEmpty ||
-        _fixed.isNotEmpty;
+        _fixed.isNotEmpty ||
+        _minAmount != null ||
+        _maxAmount != null ||
+        _sort != _TxSort.dateDesc;
     final total = rows.fold<int>(0, (s, r) => s + r.amount);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -609,6 +727,243 @@ class _SegOpt {
   final String value;
   final String label;
   const _SegOpt(this.value, this.label);
+}
+
+class _FilterIconBtn extends StatelessWidget {
+  const _FilterIconBtn({required this.active, required this.onTap});
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: active ? AppColors.primaryWeak : AppColors.surface2,
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        child: Container(
+          width: 40,
+          height: 40,
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.tune,
+            size: 18,
+            color: active ? AppColors.primary : AppColors.text2,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterResult {
+  final int? minAmount;
+  final int? maxAmount;
+  final _TxSort sort;
+  const _FilterResult({
+    required this.minAmount,
+    required this.maxAmount,
+    required this.sort,
+  });
+}
+
+class _FilterSheet extends StatefulWidget {
+  const _FilterSheet({
+    required this.initialMin,
+    required this.initialMax,
+    required this.initialSort,
+  });
+  final int? initialMin;
+  final int? initialMax;
+  final _TxSort initialSort;
+
+  @override
+  State<_FilterSheet> createState() => _FilterSheetState();
+}
+
+class _FilterSheetState extends State<_FilterSheet> {
+  late final TextEditingController _minCtrl;
+  late final TextEditingController _maxCtrl;
+  late _TxSort _sort;
+
+  @override
+  void initState() {
+    super.initState();
+    _minCtrl = TextEditingController();
+    _maxCtrl = TextEditingController();
+    if (widget.initialMin != null) {
+      AmountField.setNumber(_minCtrl, widget.initialMin);
+    }
+    if (widget.initialMax != null) {
+      AmountField.setNumber(_maxCtrl, widget.initialMax);
+    }
+    _sort = widget.initialSort;
+  }
+
+  @override
+  void dispose() {
+    _minCtrl.dispose();
+    _maxCtrl.dispose();
+    super.dispose();
+  }
+
+  void _apply() {
+    Navigator.of(context).pop(_FilterResult(
+      minAmount: AmountField.parse(_minCtrl),
+      maxAmount: AmountField.parse(_maxCtrl),
+      sort: _sort,
+    ));
+  }
+
+  void _reset() {
+    setState(() {
+      _minCtrl.clear();
+      _maxCtrl.clear();
+      _sort = _TxSort.dateDesc;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    return Padding(
+      padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
+      child: Container(
+        constraints: BoxConstraints(maxHeight: mq.size.height * 0.8),
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.line,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 4),
+              child: Row(
+                children: [
+                  const Text('필터·정렬',
+                      style: TextStyle(
+                          fontSize: 17, fontWeight: FontWeight.w700)),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: _reset,
+                    child: const Text('초기화',
+                        style: TextStyle(
+                            color: AppColors.text3, fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text('금액 범위',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.text2)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AmountField(
+                            controller: _minCtrl,
+                            label: '최소',
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          child: Text('~',
+                              style: TextStyle(
+                                  fontSize: 16, color: AppColors.text3)),
+                        ),
+                        Expanded(
+                          child: AmountField(
+                            controller: _maxCtrl,
+                            label: '최대',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    const Text('정렬',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.text2)),
+                    const SizedBox(height: 8),
+                    Column(
+                      children: [
+                        for (final s in _TxSort.values)
+                          InkWell(
+                            onTap: () => setState(() => _sort = s),
+                            borderRadius:
+                                BorderRadius.circular(AppRadius.sm),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 10),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    _sort == s
+                                        ? Icons.radio_button_checked
+                                        : Icons.radio_button_off,
+                                    size: 18,
+                                    color: _sort == s
+                                        ? AppColors.primary
+                                        : AppColors.text4,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(s.label,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: _sort == s
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                        color: _sort == s
+                                            ? AppColors.text
+                                            : AppColors.text2,
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.fromLTRB(
+                  20, 12, 20, 12 + mq.padding.bottom * 0.4),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: AppColors.line2)),
+              ),
+              child: FilledButton(
+                onPressed: _apply,
+                child: const Text('적용'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _SegBtn extends StatelessWidget {

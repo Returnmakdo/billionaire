@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../theme.dart';
 
+/// 하단 탭 버튼 클릭을 화면에 신호로 전달.
+/// 거래내역 같은 화면이 이를 listen해서 필터 reset 등 처리.
+class ShellTabSignals {
+  ShellTabSignals._();
+  static final transactionsTab = ValueNotifier<int>(0);
+}
+
 class ShellScreen extends StatelessWidget {
   const ShellScreen({super.key, required this.navigationShell});
   final StatefulNavigationShell navigationShell;
@@ -25,10 +32,13 @@ class ShellScreen extends StatelessWidget {
         indicatorColor: AppColors.primaryWeak,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (i) => navigationShell.goBranch(
-          i,
-          initialLocation: i == navigationShell.currentIndex,
-        ),
+        onDestinationSelected: (i) {
+          if (i == 1) ShellTabSignals.transactionsTab.value++;
+          navigationShell.goBranch(
+            i,
+            initialLocation: i == navigationShell.currentIndex,
+          );
+        },
         destinations: [
           for (final t in tabs)
             NavigationDestination(

@@ -60,4 +60,30 @@ class AuthService {
       redirectTo: kIsWeb ? Uri.base.origin : null,
     );
   }
+
+  /// 사용자 이름 변경 — user_metadata의 name/full_name 갱신.
+  static Future<void> updateName(String name) async {
+    final clean = name.trim();
+    if (clean.isEmpty) throw Exception('이름은 비울 수 없어요');
+    await sb.auth.updateUser(
+      UserAttributes(data: {'name': clean, 'full_name': clean}),
+    );
+  }
+
+  /// 비밀번호 변경. OAuth 가입자에겐 의미 없음 (Supabase가 비번 없는 계정에 새로
+  /// 비번을 세팅하긴 하지만 OAuth 흐름엔 안 쓰임).
+  static Future<void> updatePassword(String newPassword) async {
+    if (newPassword.length < 8) {
+      throw Exception('비밀번호는 8자 이상이어야 해요');
+    }
+    await sb.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
+  /// 본인 계정 삭제. delete_my_account RPC가 auth.users에서 본인 행 삭제 →
+  /// ON DELETE CASCADE로 모든 데이터 자동 정리. 이후 onAuthStateChange가
+  /// signedOut으로 떨어져 자동 로그인 화면으로 이동.
+  static Future<void> deleteAccount() async {
+    await sb.rpc('delete_my_account');
+    await sb.auth.signOut();
+  }
 }

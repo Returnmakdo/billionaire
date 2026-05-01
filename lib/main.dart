@@ -11,6 +11,7 @@ import 'screens/categories_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/fixed_expenses_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/settings_screen.dart';
 import 'screens/shell_screen.dart';
 import 'screens/transactions_screen.dart';
 import 'supabase.dart';
@@ -76,6 +77,10 @@ class _BudgetAppState extends State<BudgetApp> {
         GoRoute(
           path: '/login',
           builder: (_, _) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: '/settings',
+          builder: (_, _) => const SettingsScreen(),
         ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) =>

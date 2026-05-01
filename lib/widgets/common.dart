@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth.dart';
@@ -115,6 +116,21 @@ class _LogoutButton extends StatelessWidget {
         ),
         const PopupMenuDivider(height: 1),
         const PopupMenuItem<String>(
+          value: 'settings',
+          child: Row(
+            children: [
+              Icon(Icons.settings_outlined, size: 18, color: AppColors.text2),
+              SizedBox(width: 10),
+              Text('설정',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.text,
+                    fontWeight: FontWeight.w500,
+                  )),
+            ],
+          ),
+        ),
+        const PopupMenuItem<String>(
           value: 'logout',
           child: Row(
             children: [
@@ -131,7 +147,10 @@ class _LogoutButton extends StatelessWidget {
         ),
       ],
     );
-    if (action == 'logout' && context.mounted) {
+    if (!context.mounted) return;
+    if (action == 'settings') {
+      context.push('/settings');
+    } else if (action == 'logout') {
       final ok = await confirmDialog(
         context,
         title: '로그아웃',
@@ -405,6 +424,8 @@ String _authMsg(AuthException e) {
       return '올바른 이메일 형식이 아니에요';
     case 'weak_password':
       return '비밀번호가 너무 짧아요 (6자 이상)';
+    case 'same_password':
+      return '기존 비밀번호와 다른 비밀번호를 입력해주세요';
     case 'user_already_exists':
     case 'email_exists':
       return '이미 가입된 이메일이에요';
@@ -434,6 +455,9 @@ String _authMsg(AuthException e) {
   }
   if (msg.contains('email not confirmed')) {
     return '이메일 확인이 안 됐어요. 메일함을 확인해주세요';
+  }
+  if (msg.contains('same') && msg.contains('password')) {
+    return '기존 비밀번호와 다른 비밀번호를 입력해주세요';
   }
   if (msg.contains('network')) {
     return '네트워크 오류가 발생했어요';

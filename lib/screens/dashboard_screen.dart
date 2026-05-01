@@ -7,7 +7,7 @@ import '../api/api.dart';
 import '../api/models.dart';
 import '../auth.dart';
 import '../theme.dart';
-import '../widgets/budget_card.dart';
+import '../widgets/charts.dart';
 import '../widgets/common.dart';
 import '../widgets/format.dart';
 import '../widgets/ko_date_picker.dart';
@@ -147,9 +147,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 18),
               _section(
-                title: '이번 달 예산',
-                meta: '고정비 제외',
-                child: _budgetGrid(d.data),
+                title: '카테고리 비율',
+                child: AppCard(
+                  child: CategoryShare(
+                    categories: d.data.categories,
+                    month: _month,
+                  ),
+                ),
               ),
               _section(
                 title: '태그 TOP 10',
@@ -257,58 +261,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  Widget _budgetGrid(Dashboard d) {
-    final sorted = [...d.categories]
-      ..sort((a, b) => b.variableSpent.compareTo(a.variableSpent));
-    return LayoutBuilder(builder: (context, c) {
-      final two = c.maxWidth >= 700;
-      if (two) {
-        final widgets = <Widget>[];
-        for (var i = 0; i < sorted.length; i += 2) {
-          final left = sorted[i];
-          final right = i + 1 < sorted.length ? sorted[i + 1] : null;
-          widgets.add(Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: _buildBudgetCard(d.month, left)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: right != null
-                      ? _buildBudgetCard(d.month, right)
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            ),
-          ));
-        }
-        return Column(children: widgets);
-      }
-      return Column(
-        children: [
-          for (final cat in sorted)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _buildBudgetCard(d.month, cat),
-            ),
-        ],
-      );
-    });
-  }
-
-  Widget _buildBudgetCard(String month, CategoryStats c) {
-    return BudgetCard(
-      major: c.major,
-      spent: c.variableSpent,
-      budget: c.budget,
-      onTap: () => context.go(
-        '/transactions?month=${Uri.encodeComponent(month)}'
-        '&major=${Uri.encodeComponent(c.major)}',
-      ),
-    );
-  }
-
   Widget _subList(List<SubCategoryStat> rows) {
     if (rows.isEmpty) {
       return const EmptyCard(title: '이번 달 거래가 없어요');
@@ -345,94 +297,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         body: '거래내역에서 첫 거래를 추가해보세요.',
       );
     }
-    final maxV = d.trend.fold<int>(1, (m, t) => t.total > m ? t.total : m);
     return AppCard(
-      child: SizedBox(
-        height: 190,
-        child: Column(
-          children: [
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  for (final t in d.trend)
-                    Expanded(
-                      child: _TrendBar(
-                        total: t.total,
-                        ratio: t.total / maxV,
-                        isCurrent: t.ym == d.month,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                for (final t in d.trend)
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        '${int.parse(t.ym.substring(5, 7))}월',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: t.ym == d.month
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: t.ym == d.month
-                              ? AppColors.primary
-                              : AppColors.text3,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TrendBar extends StatelessWidget {
-  const _TrendBar({
-    required this.total,
-    required this.ratio,
-    required this.isCurrent,
-  });
-  final int total;
-  final double ratio;
-  final bool isCurrent;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isCurrent ? AppColors.primary : AppColors.primaryWeak;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Text(wonShort(total),
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.text3,
-                fontFeatures: [FontFeature.tabularFigures()],
-              )),
-          const SizedBox(height: 4),
-          FractionallySizedBox(
-            widthFactor: 0.8,
-            child: Container(
-              height: ratio.clamp(0.04, 1.0) * 130,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(8),
-                ),
-              ),
-            ),
-          ),
-        ],
+      child: MonthlyTrendBar(
+        trend: d.trend,
+        currentMonth: d.month,
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../api/api.dart';
 import '../api/models.dart';
+import '../auth.dart';
 import '../theme.dart';
 import '../widgets/budget_card.dart';
 import '../widgets/common.dart';
@@ -129,7 +130,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             padding: const EdgeInsets.fromLTRB(0, 0, 0, 28),
             children: [
               PageHeader(
-                title: '대시보드',
+                title: '${AuthService.displayName()}님 어서오세요',
                 subtitle: '한눈에 보는 이번 달 지출',
                 actions: [
                   MonthSwitcher(

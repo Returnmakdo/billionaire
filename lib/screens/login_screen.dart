@@ -15,6 +15,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _passConfirmCtrl = TextEditingController();
@@ -45,6 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     _emailCheckTimer?.cancel();
+    _nameCtrl.dispose();
     _emailCtrl.dispose();
     _passCtrl.dispose();
     _passConfirmCtrl.dispose();
@@ -54,6 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _toggleMode() {
     setState(() {
       _signupMode = !_signupMode;
+      _nameCtrl.clear();
       _passCtrl.clear();
       _passConfirmCtrl.clear();
       _emailCheckTimer?.cancel();
@@ -126,6 +129,11 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
     if (_signupMode) {
+      final name = _nameCtrl.text.trim();
+      if (name.isEmpty) {
+        _showError('이름을 입력해주세요');
+        return;
+      }
       if (_emailFormatError != null) {
         _showError(_emailFormatError!);
         return;
@@ -146,7 +154,11 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _busy = true);
     try {
       if (_signupMode) {
-        await AuthService.signUp(email, password);
+        await AuthService.signUp(
+          email: email,
+          password: password,
+          name: _nameCtrl.text.trim(),
+        );
       } else {
         await AuthService.signIn(email, password);
       }
@@ -280,6 +292,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: const TextStyle(color: AppColors.text3, fontSize: 14),
                     ),
                     const SizedBox(height: 24),
+                    if (_signupMode) ...[
+                      const _Label('이름'),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _nameCtrl,
+                        autofillHints: const [AutofillHints.name],
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          hintText: '이름을 입력해주세요',
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
                     const _Label('이메일'),
                     const SizedBox(height: 6),
                     TextField(

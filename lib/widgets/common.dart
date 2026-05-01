@@ -70,29 +70,119 @@ class PageHeader extends StatelessWidget {
 class _LogoutButton extends StatelessWidget {
   const _LogoutButton();
 
-  Future<void> _confirm(BuildContext context) async {
-    final ok = await confirmDialog(
-      context,
-      title: '로그아웃',
-      message: '정말 로그아웃 할까요?',
-      confirmText: '로그아웃',
+  String _initial(String name) {
+    final ch = name.characters.firstOrNull;
+    return (ch ?? '?').toUpperCase();
+  }
+
+  Future<void> _onTap(BuildContext context) async {
+    final name = AuthService.displayName();
+    final email = AuthService.currentUser?.email;
+    final action = await showMenu<String>(
+      context: context,
+      position: _menuPosition(context),
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      items: [
+        PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text,
+                    )),
+                if (email != null && email.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(email,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.text3,
+                      )),
+                ],
+              ],
+            ),
+          ),
+        ),
+        const PopupMenuDivider(height: 1),
+        const PopupMenuItem<String>(
+          value: 'logout',
+          child: Row(
+            children: [
+              Icon(Icons.logout, size: 18, color: AppColors.text2),
+              SizedBox(width: 10),
+              Text('로그아웃',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.text,
+                    fontWeight: FontWeight.w500,
+                  )),
+            ],
+          ),
+        ),
+      ],
     );
-    if (ok) await AuthService.signOut();
+    if (action == 'logout' && context.mounted) {
+      final ok = await confirmDialog(
+        context,
+        title: '로그아웃',
+        message: '정말 로그아웃 할까요?',
+        confirmText: '로그아웃',
+      );
+      if (ok) await AuthService.signOut();
+    }
+  }
+
+  RelativeRect _menuPosition(BuildContext context) {
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final button = context.findRenderObject() as RenderBox;
+    final topLeft = button.localToGlobal(
+      Offset(0, button.size.height + 4),
+      ancestor: overlay,
+    );
+    final bottomRight = button.localToGlobal(
+      button.size.bottomRight(Offset.zero),
+      ancestor: overlay,
+    );
+    return RelativeRect.fromRect(
+      Rect.fromPoints(topLeft, bottomRight),
+      Offset.zero & overlay.size,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final name = AuthService.displayName();
     return Material(
-      color: Colors.transparent,
+      color: AppColors.surface2,
       shape: const CircleBorder(),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => _confirm(context),
+        onTap: () => _onTap(context),
         customBorder: const CircleBorder(),
-        child: const Padding(
-          padding: EdgeInsets.all(8),
-          child: Icon(Icons.logout,
-              size: 20, color: AppColors.text3),
+        child: SizedBox(
+          width: 32,
+          height: 32,
+          child: Center(
+            child: Text(
+              _initial(name),
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text2,
+              ),
+            ),
+          ),
         ),
       ),
     );

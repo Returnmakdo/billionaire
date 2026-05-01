@@ -37,6 +37,7 @@ Future<void> main() async {
   }
   await _ensureFontsLoaded();
   await initSupabase();
+  AuthService.initListeners();
   runApp(const BudgetApp());
 }
 

@@ -129,8 +129,6 @@ class _LogoutButton extends StatelessWidget {
   }
 
   Future<void> _onTap(BuildContext context) async {
-    final name = AuthService.displayName();
-    final email = AuthService.currentUser?.email;
     final action = await showMenu<String>(
       context: context,
       position: _menuPosition(context),
@@ -142,28 +140,36 @@ class _LogoutButton extends StatelessWidget {
         PopupMenuItem<String>(
           enabled: false,
           padding: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text,
-                    )),
-                if (email != null && email.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(email,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.text3,
-                      )),
-                ],
-              ],
-            ),
+          // userVersion bump 시 popup 열린 동안에도 이름/이메일 자동 갱신.
+          child: ValueListenableBuilder<int>(
+            valueListenable: AuthService.userVersion,
+            builder: (_, _, _) {
+              final name = AuthService.displayName();
+              final email = AuthService.currentUser?.email;
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(name,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.text,
+                        )),
+                    if (email != null && email.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(email,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.text3,
+                          )),
+                    ],
+                  ],
+                ),
+              );
+            },
           ),
         ),
         const PopupMenuDivider(height: 1),
@@ -233,29 +239,34 @@ class _LogoutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = AuthService.displayName();
-    return Material(
-      color: AppColors.surface2,
-      shape: const CircleBorder(),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => _onTap(context),
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 32,
-          height: 32,
-          child: Center(
-            child: Text(
-              _initial(name),
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.text2,
+    return ValueListenableBuilder<int>(
+      valueListenable: AuthService.userVersion,
+      builder: (context, _, _) {
+        final name = AuthService.displayName();
+        return Material(
+          color: AppColors.surface2,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => _onTap(context),
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 32,
+              height: 32,
+              child: Center(
+                child: Text(
+                  _initial(name),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text2,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

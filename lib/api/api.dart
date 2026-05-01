@@ -629,6 +629,15 @@ class Api {
     bool? active,
     String? memo,
   }) async {
+    // 매칭용: 변경 전 값을 미리 알아둠 (이번 달 거래 동기화용).
+    final cur = await sb
+        .from('fixed_expenses')
+        .select('name, major')
+        .eq('id', id)
+        .single();
+    final oldName = cur['name'] as String;
+    final oldMajor = cur['major'] as String;
+
     final payload = <String, dynamic>{};
     if (name != null) payload['name'] = name.trim();
     if (major != null) payload['major'] = major.trim();
@@ -644,6 +653,28 @@ class Api {
         .eq('id', id)
         .select()
         .single();
+
+    // 이번 달 매칭 거래 동기화 — 거래에 직접 영향 있는 필드만.
+    // 과거 거래는 그대로 둠 (실제 발생액 보존).
+    final txUpdate = <String, dynamic>{};
+    if (name != null) txUpdate['merchant'] = name.trim();
+    if (major != null) txUpdate['major_category'] = major.trim();
+    if (sub != null) txUpdate['sub_category'] = sub;
+    if (amount != null) txUpdate['amount'] = math.max(0, amount);
+    if (card != null) txUpdate['card'] = card;
+    if (txUpdate.isNotEmpty) {
+      final ym = _ymOf(DateTime.now());
+      await sb
+          .from('transactions')
+          .update(txUpdate)
+          .eq('merchant', oldName)
+          .eq('major_category', oldMajor)
+          .eq('is_fixed', 1)
+          .gte('date', '$ym-01')
+          .lte('date', '$ym-31');
+      invalidateTx();
+    }
+
     fixedVersion.value++;
     return FixedExpense.fromJson(row);
   }

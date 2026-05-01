@@ -669,6 +669,33 @@ class _FixedModalState extends State<_FixedModal> {
                       ),
                     ),
                     if (_editing) ...[
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryWeak,
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.sm),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Icon(Icons.info_outline,
+                                size: 16, color: AppColors.primaryStrong),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '저장 시 이번 달 거래내역에 등록된 항목도 함께 업데이트돼요.\n과거 달 거래는 실제 발생액 보존을 위해 그대로 둬요.',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: AppColors.text2,
+                                  height: 1.55,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       const Divider(color: AppColors.line2, height: 1),
                       const SizedBox(height: 8),

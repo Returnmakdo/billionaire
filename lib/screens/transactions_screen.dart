@@ -215,6 +215,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   Future<void> _refreshPending() async {
+    // 정기지출 미등록 배너는 이번 달일 때만. 지난 달 페이지에선 표시하지 않음
+    // (정기지출은 매달 1일에 등록되는 흐름이고, 정기지출 이름 변경 시 과거 거래
+    // merchant와 매칭 안 돼서 false positive로 표시되는 문제도 회피).
+    if (_month != todayYm()) {
+      if (mounted) setState(() => _pending = null);
+      return;
+    }
     try {
       final p = await Api.instance.getPendingFixedExpenses(_month);
       if (!mounted) return;

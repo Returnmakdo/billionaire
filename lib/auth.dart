@@ -11,6 +11,20 @@ class AuthService {
   /// 강제 이동시킬 때 참고. 새 비번 변경 후 false로 리셋.
   static final ValueNotifier<bool> recoveryMode = ValueNotifier(false);
 
+  /// 사용자 정보(이름 등) 변경 시 bump. 화면들이 listening해서 자동 rebuild용.
+  static final ValueNotifier<int> userVersion = ValueNotifier(0);
+
+  /// supabase 측에서 user 정보가 바뀌면(updateUser, refreshSession 등) userUpdated
+  /// 이벤트가 fire — 그때 userVersion bump해서 listening 화면들 자동 갱신.
+  /// main()의 initSupabase 후 한 번 호출.
+  static void initListeners() {
+    sb.auth.onAuthStateChange.listen((data) {
+      if (data.event == AuthChangeEvent.userUpdated) {
+        userVersion.value++;
+      }
+    });
+  }
+
   static Future<void> signIn(String email, String password) async {
     await sb.auth.signInWithPassword(email: email, password: password);
   }
@@ -88,6 +102,7 @@ class AuthService {
     await sb.auth.updateUser(
       UserAttributes(data: {'name': clean, 'full_name': clean}),
     );
+    userVersion.value++;
   }
 
   /// 비밀번호 변경. OAuth 가입자에겐 의미 없음 (Supabase가 비번 없는 계정에 새로

@@ -41,6 +41,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     _apiListenable.addListener(_onApiChanged);
     SelectedMonth.value.addListener(_onMonthChanged);
+    AuthService.userVersion.addListener(_onUserChanged);
     _reload();
   }
 
@@ -48,6 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void dispose() {
     _apiListenable.removeListener(_onApiChanged);
     SelectedMonth.value.removeListener(_onMonthChanged);
+    AuthService.userVersion.removeListener(_onUserChanged);
     super.dispose();
   }
 
@@ -56,6 +58,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {});
       _reload();
     }
+  }
+
+  void _onUserChanged() {
+    // 닉네임 변경 등 사용자 정보 갱신 시 인사말 즉시 반영.
+    if (mounted) setState(() {});
   }
 
   void _onApiChanged() {

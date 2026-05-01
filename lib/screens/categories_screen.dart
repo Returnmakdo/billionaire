@@ -6,6 +6,7 @@ import '../api/api.dart';
 import '../api/models.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/skeleton.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -217,7 +218,42 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               if (_error != null) {
                 return Center(child: Text(errorMessage(_error!)));
               }
-              return const Center(child: CircularProgressIndicator());
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 90),
+                children: [
+                  const PageHeader(
+                      title: '카테고리 관리', subtitle: ''),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < 5; i++) ...[
+                          AppCard(
+                            padding: const EdgeInsets.fromLTRB(
+                                18, 14, 14, 14),
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: const [
+                                SkeletonLine(width: 80, height: 16),
+                                SizedBox(height: 14),
+                                Skeleton(height: 28, radius: 99),
+                                SizedBox(height: 14),
+                                Skeleton(
+                                    width: 110,
+                                    height: 36,
+                                    radius: 10),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              );
             }
             final cats = _cats!;
             return ListView(

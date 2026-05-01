@@ -13,6 +13,7 @@ import '../widgets/format.dart';
 import '../widgets/ko_date_picker.dart';
 import '../widgets/kpi_card.dart';
 import '../widgets/merchant_item.dart';
+import '../widgets/skeleton.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -116,14 +117,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ]);
             }
-            return ListView(
-              children: const [
-                SizedBox(
-                  height: 240,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              ],
-            );
+            return _dashboardSkeleton();
           }
           final d = _data!;
           return ListView(
@@ -168,6 +162,92 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _dashboardSkeleton() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 28),
+      children: [
+        const PageHeader(title: '...', subtitle: ''),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: LayoutBuilder(
+            builder: (context, c) {
+              final wide = c.maxWidth >= 700;
+              if (wide) {
+                return Row(
+                  children: const [
+                    Expanded(child: SkeletonCard(height: 110)),
+                    SizedBox(width: 10),
+                    Expanded(child: SkeletonCard(height: 110)),
+                    SizedBox(width: 10),
+                    Expanded(child: SkeletonCard(height: 110)),
+                    SizedBox(width: 10),
+                    Expanded(child: SkeletonCard(height: 110)),
+                  ],
+                );
+              }
+              return Column(
+                children: const [
+                  Row(children: [
+                    Expanded(child: SkeletonCard(height: 110)),
+                    SizedBox(width: 10),
+                    Expanded(child: SkeletonCard(height: 110)),
+                  ]),
+                  SizedBox(height: 10),
+                  Row(children: [
+                    Expanded(child: SkeletonCard(height: 110)),
+                    SizedBox(width: 10),
+                    Expanded(child: SkeletonCard(height: 110)),
+                  ]),
+                ],
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 18),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: const [
+                    SkeletonLine(width: 120, height: 22),
+                    Spacer(),
+                    Skeleton(width: 130, height: 32, radius: 8),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                for (var i = 0; i < 4; i++) ...[
+                  Row(
+                    children: const [
+                      Skeleton(
+                          width: 10, height: 10, shape: BoxShape.circle),
+                      SizedBox(width: 10),
+                      Expanded(child: SkeletonLine(width: 80)),
+                      SizedBox(width: 10),
+                      SkeletonLine(width: 60, height: 13),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: const [
+                      SizedBox(width: 20),
+                      Expanded(child: Skeleton(height: 4, radius: 99)),
+                      SizedBox(width: 8),
+                      SkeletonLine(width: 28, height: 11),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

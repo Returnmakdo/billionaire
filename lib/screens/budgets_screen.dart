@@ -8,6 +8,7 @@ import '../theme.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/common.dart';
 import '../widgets/format.dart';
+import '../widgets/skeleton.dart';
 
 class BudgetsScreen extends StatefulWidget {
   const BudgetsScreen({super.key});
@@ -121,6 +122,41 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     }
   }
 
+  Widget _budgetsSkeleton() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 90),
+      children: [
+        const PageHeader(title: '예산 설정', subtitle: ''),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              for (var i = 0; i < 5; i++) ...[
+                AppCard(
+                  padding:
+                      const EdgeInsets.fromLTRB(18, 16, 18, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      SkeletonLine(width: 80, height: 14),
+                      SizedBox(height: 8),
+                      SkeletonLine(width: 120, height: 13),
+                      SizedBox(height: 12),
+                      Skeleton(height: 8, radius: 99),
+                      SizedBox(height: 16),
+                      Skeleton(height: 44, radius: 10),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,7 +175,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
               if (_error != null) {
                 return Center(child: Text(errorMessage(_error!)));
               }
-              return const Center(child: CircularProgressIndicator());
+              return _budgetsSkeleton();
             }
             final d = _data!;
             return ListView(

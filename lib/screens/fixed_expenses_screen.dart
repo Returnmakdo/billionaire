@@ -9,6 +9,7 @@ import '../widgets/amount_field.dart';
 import '../widgets/category_color.dart';
 import '../widgets/common.dart';
 import '../widgets/format.dart';
+import '../widgets/skeleton.dart';
 
 class FixedExpensesScreen extends StatefulWidget {
   const FixedExpensesScreen({super.key});
@@ -111,7 +112,67 @@ class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
               if (_error != null) {
                 return Center(child: Text(errorMessage(_error!)));
               }
-              return const Center(child: CircularProgressIndicator());
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 90),
+                children: [
+                  const PageHeader(
+                      title: '정기지출', subtitle: ''),
+                  Padding(
+                    padding:
+                        const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: AppCard(
+                      tight: true,
+                      padding:
+                          const EdgeInsets.fromLTRB(18, 14, 18, 14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          SkeletonLine(width: 110, height: 11),
+                          SizedBox(height: 6),
+                          SkeletonLine(width: 140, height: 22),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < 5; i++) ...[
+                          AppCard(
+                            padding: const EdgeInsets.fromLTRB(
+                                14, 12, 14, 12),
+                            child: Row(
+                              children: const [
+                                Skeleton(
+                                    width: 36,
+                                    height: 36,
+                                    shape: BoxShape.circle),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SkeletonLine(width: 90),
+                                      SizedBox(height: 6),
+                                      SkeletonLine(
+                                          width: 130, height: 10),
+                                    ],
+                                  ),
+                                ),
+                                SkeletonLine(width: 70, height: 14),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              );
             }
             final d = _data!;
             final active =

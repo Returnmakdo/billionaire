@@ -9,6 +9,7 @@ import '../widgets/amount_field.dart';
 import '../widgets/common.dart';
 import '../widgets/format.dart';
 import '../widgets/ko_date_picker.dart';
+import '../widgets/skeleton.dart';
 import '../widgets/tx_row.dart';
 import 'shell_screen.dart' show ShellTabSignals;
 import 'tx_modal.dart';
@@ -354,7 +355,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       ),
       body: SafeArea(
         child: cats == null
-            ? const Center(child: CircularProgressIndicator())
+            ? _txSkeleton()
             : RefreshIndicator(
                 onRefresh: () async {
                   Api.instance.invalidateAllCaches();
@@ -428,6 +429,88 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     );
   }
 
+  Widget _txSkeleton() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 90),
+      children: [
+        const PageHeader(title: '거래내역', subtitle: ''),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          child: Column(
+            children: const [
+              Skeleton(height: 44, radius: 10),
+              SizedBox(height: 8),
+              Row(children: [
+                Expanded(child: Skeleton(height: 44, radius: 10)),
+                SizedBox(width: 8),
+                Skeleton(width: 130, height: 44, radius: 10),
+                SizedBox(width: 6),
+                Skeleton(width: 40, height: 40, radius: 10),
+              ]),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: _txListSkeleton(),
+        ),
+      ],
+    );
+  }
+
+  Widget _txListSkeleton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppCard(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              SkeletonLine(width: 90, height: 11),
+              SizedBox(height: 8),
+              SkeletonLine(width: 160, height: 24),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        AppCard(
+          tight: true,
+          padding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Column(
+            children: [
+              for (var i = 0; i < 5; i++) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: const [
+                      Skeleton(
+                          width: 36, height: 36, shape: BoxShape.circle),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SkeletonLine(width: 110),
+                            SizedBox(height: 6),
+                            SkeletonLine(width: 60, height: 10),
+                          ],
+                        ),
+                      ),
+                      SkeletonLine(width: 70, height: 14),
+                    ],
+                  ),
+                ),
+                if (i < 4) const Divider(color: AppColors.line2, height: 1),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _toolbar(CategoriesData cats) {
     final majors = ['', ...cats.majors];
     return Column(
@@ -498,9 +581,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               style: const TextStyle(color: AppColors.danger)),
         );
       }
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 60),
-        child: Center(child: CircularProgressIndicator()),
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: _txListSkeleton(),
       );
     }
     final rows = _applyExtraFilters(_txs!);

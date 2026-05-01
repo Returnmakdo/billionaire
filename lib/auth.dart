@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show ValueNotifier, kIsWeb;
 import 'package:flutter/material.dart' show ThemeMode;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase.dart';
 
@@ -15,28 +16,55 @@ class AuthService {
   /// 사용자 정보(이름 등) 변경 시 bump. 화면들이 listening해서 자동 rebuild용.
   static final ValueNotifier<int> userVersion = ValueNotifier(0);
 
-  /// 앱 테마 모드 — system / light / dark. user_metadata에 영구 저장.
-  /// 로그인 시 initListeners()에서 metadata 읽어와 동기화.
+  /// 앱 테마 모드 — system / light / dark.
+  /// 저장: 서버 우선(user_metadata) + 로컬 캐시(SharedPreferences).
+  /// - 로그인 화면(서버값 모르는 상태): 로컬 캐시 fallback
+  /// - 로그인 후: 서버값으로 갱신 + 로컬 동기화
+  /// - 사용자 변경: 로컬 즉시 + 서버 fire-and-forget
   static final ValueNotifier<ThemeMode> themeMode =
       ValueNotifier(ThemeMode.system);
 
+  static const _kPrefThemeMode = 'theme_mode';
+
+  static ThemeMode _parseMode(String? raw) => switch (raw) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        _ => ThemeMode.system,
+      };
+
+  /// 앱 시작 시 로컬 캐시에서 테마 즉시 적용. main()에서 await.
+  static Future<void> bootstrapTheme() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      themeMode.value = _parseMode(prefs.getString(_kPrefThemeMode));
+    } catch (_) {/* 실패해도 default(system) */}
+  }
+
   static Future<void> setThemeMode(ThemeMode mode) async {
     themeMode.value = mode;
+    // 로컬은 동기화 — 다음 콜드 부트/로그아웃 상태에서 즉시 사용.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kPrefThemeMode, mode.name);
+    } catch (_) {}
+    // 서버 저장은 fire-and-forget (UX 막지 않게).
     try {
       await sb.auth.updateUser(
         UserAttributes(data: {'theme_mode': mode.name}),
       );
-    } catch (_) {/* 저장 실패해도 in-memory 적용은 됨 */}
+    } catch (_) {}
   }
 
-  static void _syncThemeFromUser() {
-    final saved =
-        currentUser?.userMetadata?['theme_mode'] as String?;
-    themeMode.value = switch (saved) {
-      'light' => ThemeMode.light,
-      'dark' => ThemeMode.dark,
-      _ => ThemeMode.system,
-    };
+  /// 로그인 직후 호출 — 서버값을 themeMode + 로컬에 동기화.
+  static Future<void> _syncThemeFromUser() async {
+    final saved = currentUser?.userMetadata?['theme_mode'] as String?;
+    if (saved == null) return; // 서버에 안 저장된 사용자: 로컬값 유지
+    final mode = _parseMode(saved);
+    themeMode.value = mode;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kPrefThemeMode, mode.name);
+    } catch (_) {}
   }
 
   /// supabase 측에서 user 정보가 바뀌면(updateUser, refreshSession 등) userUpdated

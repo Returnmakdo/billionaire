@@ -39,6 +39,9 @@ Future<void> main() async {
   }
   await _ensureFontsLoaded();
   await initSupabase();
+  // 로컬 캐시에서 테마 즉시 복원 (로그인 화면/콜드 부트에서도 깜빡임 없이 적용).
+  // 로그인된 상태면 initListeners가 서버값으로 다시 동기화.
+  await AuthService.bootstrapTheme();
   AuthService.initListeners();
   runApp(const BudgetApp());
 }
@@ -200,8 +203,14 @@ class _BudgetAppState extends State<BudgetApp> {
       valueListenable: AuthService.themeMode,
       builder: (context, mode, _) {
         // 화면 코드의 AppColors.* getter가 정확한 색을 내려고 미리 동기화.
-        AppColors.update(resolveBrightness(mode));
+        final brightness = resolveBrightness(mode);
+        AppColors.update(brightness);
         return MaterialApp.router(
+          // key를 brightness에 묶어서 모드 변경 시 전체 widget tree 재mount.
+          // AppColors.* static get은 InheritedWidget 의존이 없어 자동 rebuild
+          // 트리거가 안 됨 — key 교체로 강제 rebuild 보장. routerConfig는
+          // 외부 변수에 보관되어 있어 재mount해도 라우트 state는 보존됨.
+          key: ValueKey(brightness),
           title: '가계부',
           debugShowCheckedModeBanner: false,
           theme: buildLightTheme(),

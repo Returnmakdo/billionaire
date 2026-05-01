@@ -126,7 +126,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Divider(height: 1, color: AppColors.line2),
               ),
-            _MenuRow(item: items[i]),
+            _MenuRow(
+              item: items[i],
+              isFirst: i == 0,
+              isLast: i == items.length - 1,
+            ),
           ],
         ],
       ),
@@ -150,14 +154,27 @@ class _MenuItem {
 }
 
 class _MenuRow extends StatelessWidget {
-  const _MenuRow({required this.item});
+  const _MenuRow({
+    required this.item,
+    this.isFirst = false,
+    this.isLast = false,
+  });
   final _MenuItem item;
+  final bool isFirst;
+  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
+    final r = Radius.circular(AppRadius.xl);
+    final radius = BorderRadius.only(
+      topLeft: isFirst ? r : Radius.zero,
+      topRight: isFirst ? r : Radius.zero,
+      bottomLeft: isLast ? r : Radius.zero,
+      bottomRight: isLast ? r : Radius.zero,
+    );
     return InkWell(
       onTap: item.onTap,
-      borderRadius: BorderRadius.circular(AppRadius.md),
+      borderRadius: radius,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(18, 16, 16, 16),
         child: Row(

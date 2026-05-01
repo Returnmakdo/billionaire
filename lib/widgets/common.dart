@@ -379,8 +379,12 @@ class AppCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: _kCardShadow,
       ),
-      padding: pad,
-      child: child,
+      // child(InkWell ripple/hover 등)가 카드 둥근 모서리 밖으로 빠져나가는
+      // 문제 방지. boxShadow는 decoration에 있어 outer라 clip 영향 없음.
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        child: Padding(padding: pad, child: child),
+      ),
     );
     if (onTap == null) return card;
     return Material(

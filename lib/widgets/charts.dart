@@ -163,23 +163,14 @@ class _SegItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? AppColors.surface : Colors.transparent,
+          color: selected ? AppColors.primaryWeak : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.sm - 2),
-          boxShadow: selected
-              ? const [
-                  BoxShadow(
-                    color: Color(0x14000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 1),
-                  ),
-                ]
-              : null,
         ),
         child: Text(label,
             style: TextStyle(
               fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-              color: selected ? AppColors.text : AppColors.text3,
+              fontWeight: FontWeight.w700,
+              color: selected ? AppColors.primaryStrong : AppColors.text3,
             )),
       ),
     );

@@ -1109,24 +1109,16 @@ class _SegBtn extends StatelessWidget {
                     horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: value == o.value
-                      ? AppColors.surface
+                      ? AppColors.primaryWeak
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppRadius.sm - 2),
-                  boxShadow: value == o.value
-                      ? const [
-                          BoxShadow(
-                              color: Color(0x14000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 1)),
-                        ]
-                      : null,
                 ),
                 child: Text(o.label,
                     style: TextStyle(
                       fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       color: value == o.value
-                          ? AppColors.text
+                          ? AppColors.primaryStrong
                           : AppColors.text3,
                     )),
               ),

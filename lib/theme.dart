@@ -82,11 +82,9 @@ ThemeData buildLightTheme() => _build(brightness: Brightness.light);
 ThemeData buildDarkTheme() => _build(brightness: Brightness.dark);
 
 ThemeData _build({required Brightness brightness}) {
-  // ThemeData 만들기 직전에 AppColors._isDark 동기화. MaterialApp이 라이트/다크
-  // ThemeData 둘 다 build하므로 마지막 호출 기준이 정확하지 않을 수 있어,
-  // 첫 frame 후에도 한번 더 보정 (themeMode에 따라).
-  AppColors.update(brightness);
-
+  // 주의: 여기서 AppColors.update를 호출하면 안 됨 — MaterialApp이 theme/darkTheme
+  // 둘 다 build해서 마지막 호출(dark)이 _isDark를 덮어씀. 동기화는 main의
+  // ValueListenableBuilder에서 themeMode 기준으로 한 번만 함.
   const fontFamily = 'Pretendard';
   final dark = brightness == Brightness.dark;
   final bg = dark ? _Dark.bg : _Light.bg;

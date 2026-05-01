@@ -62,6 +62,13 @@ String ymLabel(String ym) {
   return '${parts[0]}년 ${parts[1]}월';
 }
 
+/// 좁은 화면용 짧은 라벨 — '26년 4월' 형태 (앞 두 자리 생략).
+String ymLabelShort(String ym) {
+  final parts = ym.split('-').map(int.parse).toList();
+  final shortYear = parts[0] % 100;
+  return '${shortYear.toString().padLeft(2, '0')}년 ${parts[1]}월';
+}
+
 const _dows = ['월', '화', '수', '목', '금', '토', '일'];
 
 String dayOfWeekKo(String iso) {

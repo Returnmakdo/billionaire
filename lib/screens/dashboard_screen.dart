@@ -137,7 +137,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 subtitle: '한눈에 보는 이번 달 지출',
                 actions: [
                   MonthSwitcher(
-                    label: ymLabel(_month),
+                    label: MediaQuery.sizeOf(context).width >= 700
+                        ? ymLabel(_month)
+                        : ymLabelShort(_month),
                     onPrev: () => _shift(-1),
                     onNext: () => _shift(1),
                     onTapLabel: _pickMonth,

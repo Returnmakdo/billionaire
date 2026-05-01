@@ -392,7 +392,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       subtitle: _headerSub(),
                       actions: [
                         MonthSwitcher(
-                          label: ymLabel(_month),
+                          label: MediaQuery.sizeOf(context).width >= 700
+                              ? ymLabel(_month)
+                              : ymLabelShort(_month),
                           onPrev: () => _shift(-1),
                           onNext: () => _shift(1),
                           onTapLabel: _pickMonth,

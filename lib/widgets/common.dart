@@ -9,7 +9,9 @@ const _kCardShadow = [
   BoxShadow(color: Color(0x0A0F172A), blurRadius: 6, offset: Offset(0, 1)),
 ];
 
-/// 화면 상단 공통 헤더: 제목 + 부제 + 우측 액션.
+/// 화면 상단 공통 헤더: 제목 + 부제 + 우측 액션 + 프로필 아바타.
+/// 좁은 화면에서는 actions(MonthSwitcher 등)을 title 아래 줄로 내려서 title이
+/// 좁아지지 않게 함.
 class PageHeader extends StatelessWidget {
   const PageHeader({
     super.key,
@@ -26,47 +28,97 @@ class PageHeader extends StatelessWidget {
     final acts = actions;
     final isWide = MediaQuery.sizeOf(context).width >= 700;
     final titleSize = isWide ? 28.0 : 22.0;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, isWide ? 28 : 20, 20, 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: TextStyle(
-                      fontSize: titleSize,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text,
-                      letterSpacing: -0.01 * titleSize,
-                      height: 1.2,
-                    )),
-                if (subtitle != null && subtitle!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(subtitle!,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.text3,
-                      )),
+
+    final titleWidget = Text(
+      title,
+      style: TextStyle(
+        fontSize: titleSize,
+        fontWeight: FontWeight.w700,
+        color: AppColors.text,
+        letterSpacing: -0.01 * titleSize,
+        height: 1.2,
+      ),
+    );
+    final subtitleWidget = (subtitle != null && subtitle!.isNotEmpty)
+        ? Text(
+            subtitle!,
+            style: const TextStyle(fontSize: 14, color: AppColors.text3),
+          )
+        : null;
+    final hasActions = acts != null && acts.isNotEmpty;
+
+    if (isWide) {
+      // 넓은 화면: 한 줄에 title | actions + avatar
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  titleWidget,
+                  if (subtitleWidget != null) ...[
+                    const SizedBox(height: 4),
+                    subtitleWidget,
+                  ],
                 ],
+              ),
+            ),
+            Wrap(
+              spacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (acts != null) ...acts,
+                const _LogoutButton(),
               ],
             ),
-          ),
-          Wrap(
-            spacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
+          ],
+        ),
+      );
+    }
+
+    // 모바일: title + actions + avatar 한 줄 (compact MonthSwitcher 덕분에 들어감)
+    final mobileTitle = Text(
+      title,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: const TextStyle(
+        fontSize: 19,
+        fontWeight: FontWeight.w700,
+        color: AppColors.text,
+        letterSpacing: -0.2,
+        height: 1.2,
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (acts != null) ...acts,
+              Expanded(child: mobileTitle),
+              const SizedBox(width: 8),
+              if (hasActions) ...[
+                ...acts,
+                const SizedBox(width: 6),
+              ],
               const _LogoutButton(),
             ],
           ),
+          if (subtitleWidget != null) ...[
+            const SizedBox(height: 4),
+            subtitleWidget,
+          ],
         ],
       ),
     );
   }
 }
+
 
 class _LogoutButton extends StatelessWidget {
   const _LogoutButton();
@@ -224,15 +276,19 @@ class MonthSwitcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.sizeOf(context).width >= 700;
+    // 좁은 화면이면 라벨 짧게 ('26년 4월') + 컴팩트 패딩
+    final compact = !isWide;
     final labelChild = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: EdgeInsets.symmetric(
+          horizontal: compact ? 4 : 8, vertical: 6),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: compact ? 13 : 14,
                 color: AppColors.text,
               )),
           if (onTapLabel != null) ...[
@@ -249,13 +305,15 @@ class MonthSwitcher extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: _kCardShadow,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: EdgeInsets.symmetric(horizontal: compact ? 0 : 4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            iconSize: 20,
+            iconSize: compact ? 18 : 20,
             visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.all(compact ? 4 : 8),
+            constraints: const BoxConstraints(),
             onPressed: onPrev,
             icon: const Icon(Icons.chevron_left,
                 color: AppColors.text2),
@@ -269,8 +327,10 @@ class MonthSwitcher extends StatelessWidget {
           else
             labelChild,
           IconButton(
-            iconSize: 20,
+            iconSize: compact ? 18 : 20,
             visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.all(compact ? 4 : 8),
+            constraints: const BoxConstraints(),
             onPressed: onNext,
             icon: const Icon(Icons.chevron_right,
                 color: AppColors.text2),

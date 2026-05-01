@@ -150,7 +150,7 @@ class SpendingSummaryPage extends StatelessWidget {
       TrendPoint(ym: d.month, total: d.thisMonthTotal),
     ];
 
-    return SingleChildScrollView(
+    return _FadingScroll(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +233,7 @@ class SpendingPatternPage extends StatelessWidget {
     final maxTotal = top.isEmpty ? 1 : top.first.value.total;
     final topShown = top.take(5).toList();
 
-    return SingleChildScrollView(
+    return _FadingScroll(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,7 +297,7 @@ class SpendingBudgetPage extends StatelessWidget {
       ..sort((a, b) => b.pct.compareTo(a.pct));
     final shown = entries.take(5).toList();
 
-    return SingleChildScrollView(
+    return _FadingScroll(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,7 +337,7 @@ class SpendingSuggestionPage extends StatelessWidget {
       ..sort((a, b) => b.variableSpent.compareTo(a.variableSpent));
     final topMajors = variableMajors.take(3).toList();
 
-    return SingleChildScrollView(
+    return _FadingScroll(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -447,7 +447,7 @@ class SpendingOtherPage extends StatelessWidget {
   final InsightSection section;
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return _FadingScroll(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,6 +457,81 @@ class SpendingOtherPage extends StatelessWidget {
           _PageBody(body: section.body),
         ],
       ),
+    );
+  }
+}
+
+/// 콘텐츠가 길 때 하단에 fade gradient를 깔아 "더 있어요" 신호를 주고,
+/// 스크롤이 끝에 도달하면 fade가 부드럽게 사라짐.
+class _FadingScroll extends StatefulWidget {
+  const _FadingScroll({required this.padding, required this.child});
+  final EdgeInsetsGeometry padding;
+  final Widget child;
+  @override
+  State<_FadingScroll> createState() => _FadingScrollState();
+}
+
+class _FadingScrollState extends State<_FadingScroll> {
+  final _ctrl = ScrollController();
+  bool _showFade = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl.addListener(_update);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _update());
+  }
+
+  @override
+  void dispose() {
+    _ctrl.removeListener(_update);
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _update() {
+    if (!_ctrl.hasClients || !mounted) return;
+    final pos = _ctrl.position;
+    final canScrollDown = pos.maxScrollExtent - pos.pixels > 1.0;
+    if (canScrollDown != _showFade) {
+      setState(() => _showFade = canScrollDown);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          controller: _ctrl,
+          padding: widget.padding,
+          child: widget.child,
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 28,
+          child: IgnorePointer(
+            child: AnimatedOpacity(
+              opacity: _showFade ? 1 : 0,
+              duration: const Duration(milliseconds: 180),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      AppColors.surface,
+                      AppColors.surface.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

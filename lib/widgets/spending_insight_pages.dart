@@ -64,6 +64,7 @@ ParsedInsight parseInsight(String markdown) {
 /// 직전 char가 비공백이면 앞에, 직후 char가 비공백이면 뒤에 공백을 끼워
 /// word boundary를 확보.
 String _normalizeBold(String s) {
+  // ** 양옆에 한글/구두점이 인접하면 공백 강제 삽입 (단어 경계 확보).
   s = s.replaceAllMapped(
     RegExp(r'(\S?)\*\*([^*\n]+?)\*\*(\S?)'),
     (m) {
@@ -74,6 +75,15 @@ String _normalizeBold(String s) {
       final post = after.isEmpty ? '' : ' $after';
       return '$pre**$inner**$post';
     },
+  );
+  // 1) ~~text~~ 형식 취소선 마크업 제거.
+  s = s.replaceAll(RegExp(r'[~～〜]{2,}'), '');
+  // 2) 숫자~숫자 같은 단일 tilde 범위 표현 — GFM 파서가 두 개의 단일 ~를
+  //    strikethrough 짝으로 매치해서 사이 텍스트를 취소선 처리하는 케이스가
+  //    있어 일반 dash로 변환.
+  s = s.replaceAllMapped(
+    RegExp(r'(\d)\s*[~～〜]\s*(\d)'),
+    (m) => '${m[1]}-${m[2]}',
   );
   return s;
 }

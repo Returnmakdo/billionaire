@@ -740,6 +740,55 @@ class Api {
     return buf.toString();
   }
 
+  // ── AI 인사이트 (Edge Function 프록시) ─────────────────────
+  /// 빠른 캐시 조회 — Edge Function 거치지 않고 ai_insights 테이블에서 바로
+  /// 가져와서 분석 화면 마운트 시 즉시 표시용. RLS로 본인 데이터만 보임.
+  Future<SpendingInsight?> getCachedSpendingInsight(String month) async {
+    if (!RegExp(r'^\d{4}-\d{2}$').hasMatch(month)) return null;
+    final row = await sb
+        .from('ai_insights')
+        .select('content, generated_at')
+        .eq('month', month)
+        .maybeSingle();
+    if (row == null) return null;
+    final content = row['content'] as String?;
+    if (content == null || content.isEmpty) return null;
+    return SpendingInsight(
+      text: content,
+      cached: true,
+      generatedAt: DateTime.tryParse(row['generated_at']?.toString() ?? ''),
+    );
+  }
+
+  /// [force]가 true면 캐시 무시하고 새로 분석.
+  /// 응답에는 insight 본문 + cached 여부 + (있다면) generated_at 포함.
+  Future<SpendingInsight> getSpendingInsight(
+    String month, {
+    bool force = false,
+  }) async {
+    if (!RegExp(r'^\d{4}-\d{2}$').hasMatch(month)) {
+      throw Exception('month 필요');
+    }
+    final res = await sb.functions.invoke(
+      'spending-insights',
+      body: {'month': month, 'force': force},
+    );
+    final data = res.data;
+    if (data is Map && data['insight'] is String) {
+      return SpendingInsight(
+        text: data['insight'] as String,
+        cached: data['cached'] == true,
+        generatedAt: data['generatedAt'] is String
+            ? DateTime.tryParse(data['generatedAt'] as String)
+            : null,
+      );
+    }
+    if (data is Map && data['error'] != null) {
+      throw Exception(data['error'].toString());
+    }
+    throw Exception('분석 결과를 받을 수 없어요.');
+  }
+
   Future<PendingFixed> getPendingFixedExpenses(String month) async {
     if (!RegExp(r'^\d{4}-\d{2}$').hasMatch(month)) {
       throw Exception('month 필요');
@@ -800,6 +849,17 @@ List<Tx> _filterFixed(List<Tx> txs, bool? fixed) {
   if (fixed == true) return txs.where((t) => t.isFixed).toList();
   if (fixed == false) return txs.where((t) => !t.isFixed).toList();
   return txs;
+}
+
+class SpendingInsight {
+  const SpendingInsight({
+    required this.text,
+    required this.cached,
+    this.generatedAt,
+  });
+  final String text;
+  final bool cached;
+  final DateTime? generatedAt;
 }
 
 class _MajorAgg {

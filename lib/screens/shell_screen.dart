@@ -18,7 +18,7 @@ class ShellScreen extends StatelessWidget {
     _Tab('거래내역', Icons.receipt_long_outlined, Icons.receipt_long),
     _Tab('예산', Icons.savings_outlined, Icons.savings),
     _Tab('정기지출', Icons.repeat, Icons.repeat_on),
-    _Tab('카테고리', Icons.category_outlined, Icons.category),
+    _Tab('분석', Icons.insights_outlined, Icons.insights),
   ];
 
   @override

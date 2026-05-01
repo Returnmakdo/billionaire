@@ -49,6 +49,7 @@ app.*.map.json
 *.swp
 *.bak
 *.tmp
+*.stackdump
 .DS_Store
 Thumbs.db
 .atom/

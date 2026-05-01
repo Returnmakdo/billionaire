@@ -204,6 +204,24 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
+      appBar: AppBar(
+        backgroundColor: AppColors.bg,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.text2),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+        title: const Text(
+          '카테고리 관리',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: AppColors.text,
+          ),
+        ),
+        centerTitle: false,
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addMajor,
         backgroundColor: AppColors.primary,
@@ -219,71 +237,45 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 return Center(child: Text(errorMessage(_error!)));
               }
               return ListView(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 90),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
                 children: [
-                  const PageHeader(
-                      title: '카테고리 관리', subtitle: ''),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      children: [
-                        for (var i = 0; i < 5; i++) ...[
-                          AppCard(
-                            padding: const EdgeInsets.fromLTRB(
-                                18, 14, 14, 14),
-                            child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              children: const [
-                                SkeletonLine(width: 80, height: 16),
-                                SizedBox(height: 14),
-                                Skeleton(height: 28, radius: 99),
-                                SizedBox(height: 14),
-                                Skeleton(
-                                    width: 110,
-                                    height: 36,
-                                    radius: 10),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 10),
+                  for (var i = 0; i < 5; i++) ...[
+                    AppCard(
+                      padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          SkeletonLine(width: 80, height: 16),
+                          SizedBox(height: 14),
+                          Skeleton(height: 28, radius: 99),
+                          SizedBox(height: 14),
+                          Skeleton(width: 110, height: 36, radius: 10),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                  ],
                 ],
               );
             }
             final cats = _cats!;
             return ListView(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 90),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
               children: [
-                const PageHeader(
-                  title: '카테고리 관리',
-                  subtitle: '카테고리와 태그를 관리해요.',
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      for (final m in cats.majors)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _MajorCard(
-                            key: ValueKey(m),
-                            major: m,
-                            subs: cats.byMajor[m] ?? const [],
-                            onAddSub: () => _addSub(m),
-                            onRenameSub: _renameSub,
-                            onDeleteSub: _deleteSub,
-                            onRename: (v) => _renameMajor(m, v),
-                            onDelete: () => _deleteMajor(m),
-                          ),
-                        ),
-                    ],
+                for (final m in cats.majors)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _MajorCard(
+                      key: ValueKey(m),
+                      major: m,
+                      subs: cats.byMajor[m] ?? const [],
+                      onAddSub: () => _addSub(m),
+                      onRenameSub: _renameSub,
+                      onDeleteSub: _deleteSub,
+                      onRename: (v) => _renameMajor(m, v),
+                      onDelete: () => _deleteMajor(m),
+                    ),
                   ),
-                ),
               ],
             );
           },

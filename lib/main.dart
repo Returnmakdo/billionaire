@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthChangeEvent;
 
 import 'auth.dart';
+import 'screens/account_settings_screen.dart';
 import 'screens/budgets_screen.dart';
 import 'screens/categories_screen.dart';
 import 'screens/dashboard_screen.dart';
@@ -15,6 +16,7 @@ import 'screens/login_screen.dart';
 import 'screens/reset_password_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/shell_screen.dart';
+import 'screens/spending_insights_screen.dart';
 import 'screens/transactions_screen.dart';
 import 'supabase.dart';
 import 'theme.dart';
@@ -98,6 +100,16 @@ class _BudgetAppState extends State<BudgetApp> {
         GoRoute(
           path: '/settings',
           builder: (_, _) => const SettingsScreen(),
+          routes: [
+            GoRoute(
+              path: 'account',
+              builder: (_, _) => const AccountSettingsScreen(),
+            ),
+            GoRoute(
+              path: 'categories',
+              builder: (_, _) => const CategoriesScreen(),
+            ),
+          ],
         ),
         GoRoute(
           path: '/reset-password',
@@ -142,8 +154,8 @@ class _BudgetAppState extends State<BudgetApp> {
             ]),
             StatefulShellBranch(routes: [
               GoRoute(
-                path: '/categories',
-                builder: (_, _) => const CategoriesScreen(),
+                path: '/insights',
+                builder: (_, _) => const SpendingInsightsScreen(),
               ),
             ]),
           ],

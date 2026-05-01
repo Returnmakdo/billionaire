@@ -127,7 +127,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             // 하단 — dot indicator + 버튼
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

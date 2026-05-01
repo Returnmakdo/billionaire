@@ -24,22 +24,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const _slides = <_Slide>[
     _Slide(
-      icon: Icons.receipt_long_outlined,
+      image: 'assets/onboarding/01.png',
       title: '기록은 단순하게',
       body: '거래를 추가하면 카테고리·태그·고정/변동까지 한 번에 정리해드려요.',
     ),
     _Slide(
-      icon: Icons.insights_outlined,
+      image: 'assets/onboarding/02.png',
       title: '한 달이 한 화면에',
       body: 'AI가 거래를 보고 패턴, 이상치, 다음 달 제안까지 짚어줘요.',
     ),
     _Slide(
-      icon: Icons.savings_outlined,
+      image: 'assets/onboarding/03.png',
       title: '예산은 한 번 세우고',
       body: '카테고리별 진행률이 매일 자동으로 업데이트돼요.',
     ),
     _Slide(
-      icon: Icons.repeat_rounded,
+      image: 'assets/onboarding/04.png',
       title: '매달 같은 지출은 자동',
       body: '구독·월세·통신비, 한 번 등록하면 매달 자동 반영해요.',
     ),
@@ -156,11 +156,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
 class _Slide {
   const _Slide({
-    required this.icon,
+    required this.image,
     required this.title,
     required this.body,
   });
-  final IconData icon;
+  final String image;
   final String title;
   final String body;
 }
@@ -171,45 +171,53 @@ class _SlideView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 28),
+      padding: const EdgeInsets.fromLTRB(28, 4, 28, 4),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 120,
-            height: 120,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.primaryWeak,
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Icon(
-              slide.icon,
-              size: 56,
-              color: AppColors.primary,
+          // 실제 화면 스크린샷 — 부드러운 라운드 + 옅은 그림자로 카드 느낌.
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Image.asset(
+                  slide.image,
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 36),
+          const SizedBox(height: 24),
           Text(
             slide.title,
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontFamily: 'Pretendard',
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.text,
               height: 1.3,
               letterSpacing: -0.4,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Text(
             slide.body,
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontFamily: 'Pretendard',
-              fontSize: 14.5,
+              fontSize: 13.5,
               color: AppColors.text2,
               height: 1.55,
             ),

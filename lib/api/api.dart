@@ -715,6 +715,31 @@ class Api {
     );
   }
 
+  /// 모든 거래내역을 CSV 문자열로 export. 엑셀/구글 시트에서 바로 열림.
+  /// 큰 따옴표/콤마/줄바꿈 escape 처리됨.
+  Future<String> exportTransactionsCsv() async {
+    final txs = await _getAllTx();
+    final sorted = [...txs]..sort((a, b) {
+        final dc = b.date.compareTo(a.date);
+        return dc != 0 ? dc : b.id.compareTo(a.id);
+      });
+    final buf = StringBuffer()
+      ..writeln('날짜,카드/결제수단,가맹점,금액,카테고리,태그,메모,고정비');
+    for (final t in sorted) {
+      buf.writeln([
+        t.date,
+        _csvField(t.card),
+        _csvField(t.merchant),
+        t.amount.toString(),
+        _csvField(t.majorCategory),
+        _csvField(t.subCategory),
+        _csvField(t.memo),
+        t.isFixed ? '예' : '아니오',
+      ].join(','));
+    }
+    return buf.toString();
+  }
+
   Future<PendingFixed> getPendingFixedExpenses(String month) async {
     if (!RegExp(r'^\d{4}-\d{2}$').hasMatch(month)) {
       throw Exception('month 필요');
@@ -760,6 +785,15 @@ int _clampDay(int day, {String? month}) {
   final parts = month.split('-').map(int.parse).toList();
   final lastDay = DateTime(parts[0], parts[1] + 1, 0).day;
   return math.min(d, lastDay);
+}
+
+/// CSV 한 필드 escape — 콤마/큰따옴표/줄바꿈 포함 시 큰따옴표로 감쌈.
+String _csvField(String? v) {
+  if (v == null || v.isEmpty) return '';
+  if (v.contains(',') || v.contains('"') || v.contains('\n')) {
+    return '"${v.replaceAll('"', '""')}"';
+  }
+  return v;
 }
 
 List<Tx> _filterFixed(List<Tx> txs, bool? fixed) {

@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show User;
 
+import '../api/api.dart';
 import '../auth.dart';
 import '../theme.dart';
+import '../utils/csv_download_stub.dart'
+    if (dart.library.html) '../utils/csv_download_web.dart';
 import '../widgets/common.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -28,6 +31,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _hasSymbol = false;
 
   bool _deleting = false;
+  bool _exporting = false;
 
   @override
   void initState() {
@@ -114,6 +118,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _exportCsv() async {
+    setState(() => _exporting = true);
+    try {
+      final csv = await Api.instance.exportTransactionsCsv();
+      final ts = DateTime.now();
+      final stamp =
+          '${ts.year}${ts.month.toString().padLeft(2, '0')}${ts.day.toString().padLeft(2, '0')}';
+      triggerCsvDownload(csv, '가계부_$stamp.csv');
+      if (!mounted) return;
+      showToast(context, 'CSV 파일을 다운로드했어요');
+    } catch (e) {
+      if (!mounted) return;
+      showToast(context, errorMessage(e), error: true);
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
   Future<void> _deleteAccount() async {
     final email = AuthService.currentUser?.email ?? '';
     final confirmed = await showDialog<bool>(
@@ -166,6 +188,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 14),
               _passwordCard(),
             ],
+            const SizedBox(height: 14),
+            _exportCard(),
             const SizedBox(height: 32),
             Align(
               alignment: Alignment.centerRight,
@@ -294,6 +318,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               onPressed: _savingName ? null : _saveName,
               child: Text(_savingName ? '저장 중...' : '저장'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _exportCard() {
+    return AppCard(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('데이터 내보내기',
+              style: TextStyle(
+                fontSize: 12.5,
+                color: AppColors.text3,
+                fontWeight: FontWeight.w600,
+              )),
+          const SizedBox(height: 6),
+          const Text(
+            '모든 거래내역을 CSV 파일로 다운로드해요. 엑셀에서 바로 열려요.',
+            style: TextStyle(fontSize: 13, color: AppColors.text2),
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: OutlinedButton.icon(
+              onPressed: _exporting ? null : _exportCsv,
+              icon: const Icon(Icons.download, size: 18),
+              label: Text(_exporting ? '내보내는 중...' : 'CSV 다운로드'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(
+                    color: AppColors.primaryWeak, width: 1.5),
+                minimumSize: const Size(0, 40),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+              ),
             ),
           ),
         ],

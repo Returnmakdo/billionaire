@@ -178,6 +178,73 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _forgotPassword() async {
+    final ctrl = TextEditingController(text: _emailCtrl.text.trim());
+    final email = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        title: const Text('비밀번호 재설정',
+            style: TextStyle(fontWeight: FontWeight.w700)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              '가입한 이메일을 입력하시면 재설정 링크를 보내드려요.',
+              style: TextStyle(fontSize: 13, color: AppColors.text2),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl,
+              autofocus: true,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(hintText: '이메일'),
+              onSubmitted: (_) =>
+                  Navigator.of(ctx).pop(ctrl.text.trim()),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('취소',
+                style: TextStyle(color: AppColors.text2)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
+            child: const Text('메일 보내기',
+                style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+    if (email == null || email.isEmpty) return;
+    if (!_emailRegex.hasMatch(email)) {
+      if (mounted) _showError('올바른 이메일 형식이 아니에요');
+      return;
+    }
+    try {
+      await AuthService.sendPasswordReset(email);
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(
+            content: Text(
+                '재설정 메일을 보냈어요. 메일함을 확인해주세요'),
+            backgroundColor: AppColors.text,
+            duration: Duration(seconds: 4),
+          ));
+      }
+    } catch (e) {
+      if (mounted) _showError(errorMessage(e));
+    }
+  }
+
   Widget _passwordChecklist() {
     return Wrap(
       spacing: 6,
@@ -345,6 +412,30 @@ class _LoginScreenState extends State<LoginScreen> {
                       onSubmitted: _signupMode ? null : (_) => _submit(),
                       onChanged: _signupMode ? _onPasswordChanged : null,
                     ),
+                    if (!_signupMode) ...[
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _busy ? null : _forgotPassword,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 4),
+                            minimumSize: const Size(0, 28),
+                            tapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            '비밀번호 잊으셨나요?',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: AppColors.text3,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                     if (_signupMode) ...[
                       const SizedBox(height: 8),
                       _passwordChecklist(),

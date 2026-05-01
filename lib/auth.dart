@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show ValueNotifier, kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase.dart';
 
@@ -6,6 +6,10 @@ class AuthService {
   static User? get currentUser => sb.auth.currentUser;
   static String? get currentUserId => sb.auth.currentUser?.id;
   static Stream<AuthState> get onAuthStateChange => sb.auth.onAuthStateChange;
+
+  /// 비밀번호 재설정 메일 링크로 들어왔을 때 true. 라우터가 /reset-password로
+  /// 강제 이동시킬 때 참고. 새 비번 변경 후 false로 리셋.
+  static final ValueNotifier<bool> recoveryMode = ValueNotifier(false);
 
   static Future<void> signIn(String email, String password) async {
     await sb.auth.signInWithPassword(email: email, password: password);
@@ -85,5 +89,16 @@ class AuthService {
   static Future<void> deleteAccount() async {
     await sb.rpc('delete_my_account');
     await sb.auth.signOut();
+  }
+
+  /// 비밀번호 재설정 메일 발송. 로그인 화면 "비밀번호 잊으셨나요?"용.
+  /// redirectTo는 root origin만 — Supabase Redirect URLs 화이트리스트랑 매칭
+  /// 안 되면 Site URL(prod)로 fallback 됨. 클릭 후 우리 앱이 passwordRecovery
+  /// 이벤트 받아서 /reset-password 화면으로 강제 이동.
+  static Future<void> sendPasswordReset(String email) async {
+    await sb.auth.resetPasswordForEmail(
+      email.trim(),
+      redirectTo: kIsWeb ? Uri.base.origin : null,
+    );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthChangeEvent;
 
 import 'auth.dart';
 import 'screens/budgets_screen.dart';
@@ -11,6 +12,7 @@ import 'screens/categories_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/fixed_expenses_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/reset_password_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/shell_screen.dart';
 import 'screens/transactions_screen.dart';
@@ -20,6 +22,15 @@ import 'theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) usePathUrlStrategy();
+  // 비번 재설정 메일 링크로 진입했는지 먼저 확인. supabase 이벤트는
+  // initialize 중에 fire 될 수 있어서 listener 등록 전에 놓치므로 URL로 직접
+  // 체크. (`#access_token=...&type=recovery&...` 형태)
+  if (kIsWeb) {
+    final href = Uri.base.toString();
+    if (href.contains('type=recovery')) {
+      AuthService.recoveryMode.value = true;
+    }
+  }
   await _ensureFontsLoaded();
   await initSupabase();
   runApp(const BudgetApp());
@@ -62,8 +73,14 @@ class _BudgetAppState extends State<BudgetApp> {
       redirect: (context, state) {
         final loggedIn = AuthService.currentUser != null;
         final atLogin = state.matchedLocation == '/login';
+        final atReset = state.matchedLocation == '/reset-password';
+        // 비밀번호 재설정 메일 링크로 들어왔으면 무조건 reset 화면
+        if (AuthService.recoveryMode.value && loggedIn) {
+          return atReset ? null : '/reset-password';
+        }
         if (!loggedIn) return atLogin ? null : '/login';
         if (atLogin) return '/dashboard';
+        if (atReset) return '/dashboard';
         return null;
       },
       routes: [
@@ -81,6 +98,10 @@ class _BudgetAppState extends State<BudgetApp> {
         GoRoute(
           path: '/settings',
           builder: (_, _) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: '/reset-password',
+          builder: (_, _) => const ResetPasswordScreen(),
         ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) =>
@@ -154,12 +175,19 @@ class _BudgetAppState extends State<BudgetApp> {
 
 class _AuthNotifier extends ChangeNotifier {
   _AuthNotifier() {
-    _sub = AuthService.onAuthStateChange.listen((_) => notifyListeners());
+    _sub = AuthService.onAuthStateChange.listen((data) {
+      if (data.event == AuthChangeEvent.passwordRecovery) {
+        AuthService.recoveryMode.value = true;
+      }
+      notifyListeners();
+    });
+    AuthService.recoveryMode.addListener(notifyListeners);
   }
   late final dynamic _sub;
   @override
   void dispose() {
     _sub.cancel();
+    AuthService.recoveryMode.removeListener(notifyListeners);
     super.dispose();
   }
 }

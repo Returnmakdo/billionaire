@@ -239,6 +239,28 @@ class FixedApplyResult {
   });
 }
 
+/// CSV import 한 행. 검증·정규화된 거래 데이터.
+class ImportRow {
+  const ImportRow({
+    required this.date,
+    required this.amount,
+    required this.majorCategory,
+    this.card,
+    this.merchant,
+    this.subCategory,
+    this.memo,
+    this.isFixed = false,
+  });
+  final String date; // YYYY-MM-DD
+  final int amount;
+  final String majorCategory;
+  final String? card;
+  final String? merchant;
+  final String? subCategory;
+  final String? memo;
+  final bool isFixed;
+}
+
 class PendingFixed {
   final String month;
   final int total;

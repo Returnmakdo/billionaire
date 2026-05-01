@@ -174,6 +174,81 @@ class Api {
     invalidateTx();
   }
 
+  /// CSV import — 검증된 거래 행을 한 번에 INSERT.
+  /// 행에 등록 안 된 카테고리/태그가 있으면 함께 자동 추가.
+  /// [rows]는 ImportRow 형태 — date, amount, majorCategory 필수.
+  /// 반환: 등록 성공 건수.
+  Future<int> importTransactions(List<ImportRow> rows) async {
+    if (rows.isEmpty) return 0;
+    final userId = _uid();
+
+    // 신규 카테고리/태그 자동 등록.
+    final existingMajors = (await listMajors()).map((m) => m.name).toSet();
+    final cats = await listCategories();
+    final existingSubs = <String>{
+      for (final c in cats.flat) '${c.major}|${c.sub}',
+    };
+
+    final newMajors = <String>{};
+    final newSubs = <String>{};
+    for (final r in rows) {
+      if (!existingMajors.contains(r.majorCategory)) {
+        newMajors.add(r.majorCategory);
+      }
+      final sub = r.subCategory;
+      if (sub != null && sub.isNotEmpty) {
+        final key = '${r.majorCategory}|$sub';
+        if (!existingSubs.contains(key)) newSubs.add(key);
+      }
+    }
+
+    if (newMajors.isNotEmpty) {
+      var nextOrder = existingMajors.length;
+      await sb.from('majors').insert([
+        for (final m in newMajors)
+          {'user_id': userId, 'major': m, 'sort_order': nextOrder++},
+      ]);
+      await sb.from('budgets').insert([
+        for (final m in newMajors)
+          {'user_id': userId, 'major': m, 'monthly_amount': 0},
+      ]);
+    }
+    if (newSubs.isNotEmpty) {
+      await sb.from('categories').insert([
+        for (final key in newSubs)
+          {
+            'user_id': userId,
+            'major': key.split('|')[0],
+            'sub': key.split('|')[1],
+            'sort_order': 0,
+          },
+      ]);
+    }
+
+    final payload = rows.map((r) => {
+          'user_id': userId,
+          'date': r.date,
+          'card': r.card,
+          'merchant': r.merchant,
+          'amount': r.amount,
+          'major_category': r.majorCategory,
+          'sub_category': r.subCategory,
+          'memo': r.memo,
+          'is_fixed': r.isFixed ? 1 : 0,
+        }).toList();
+
+    // batch insert (한 번에 수백 건 OK).
+    await sb.from('transactions').insert(payload);
+
+    invalidateTx();
+    if (newMajors.isNotEmpty) {
+      majorsVersion.value++;
+      budgetsVersion.value++;
+    }
+    if (newSubs.isNotEmpty) categoriesVersion.value++;
+    return rows.length;
+  }
+
   // ── majors ──────────────────────────────────────────────────
   Future<List<Major>> listMajors() async {
     final rows = await sb
@@ -755,14 +830,15 @@ class Api {
         return dc != 0 ? dc : b.id.compareTo(a.id);
       });
     final buf = StringBuffer()
-      ..writeln('날짜,카드/결제수단,가맹점,금액,카테고리,태그,메모,고정비');
+      // 필수(날짜·금액·카테고리)를 앞에 두고 import 양식과 일치시킴 (round-trip 보장).
+      ..writeln('날짜,금액,카테고리,가맹점,카드/결제수단,태그,메모,고정비');
     for (final t in sorted) {
       buf.writeln([
         t.date,
-        _csvField(t.card),
-        _csvField(t.merchant),
         t.amount.toString(),
         _csvField(t.majorCategory),
+        _csvField(t.merchant),
+        _csvField(t.card),
         _csvField(t.subCategory),
         _csvField(t.memo),
         t.isFixed ? '예' : '아니오',

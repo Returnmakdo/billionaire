@@ -75,6 +75,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: () => context.push('/settings/categories'),
               ),
               _MenuItem(
+                icon: Icons.upload_file_outlined,
+                title: '데이터 가져오기',
+                subtitle: 'CSV로 거래 일괄 등록',
+                onTap: () => context.push('/settings/import'),
+              ),
+              _MenuItem(
                 icon: Icons.download_outlined,
                 title: 'CSV 내보내기',
                 subtitle: _exporting ? '다운로드 중...' : '모든 거래내역 다운로드',

@@ -13,6 +13,7 @@ import 'screens/categories_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/fixed_expenses_screen.dart';
 import 'screens/help_screen.dart';
+import 'screens/import_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/reset_password_screen.dart';
@@ -120,6 +121,10 @@ class _BudgetAppState extends State<BudgetApp> {
             GoRoute(
               path: 'help',
               builder: (_, _) => const HelpScreen(),
+            ),
+            GoRoute(
+              path: 'import',
+              builder: (_, _) => const ImportScreen(),
             ),
           ],
         ),

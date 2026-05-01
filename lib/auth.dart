@@ -59,9 +59,25 @@ class AuthService {
   /// OAuth 로그인. 웹에선 현재 origin으로 리다이렉트, 모바일은 Site URL 사용.
   /// 신규 사용자면 자동 가입(트리거가 '기타' 카테고리 시드).
   static Future<void> signInWithProvider(OAuthProvider provider) async {
+    // 끝에 '/' 강제 — Supabase Redirect URLs 화이트리스트가 'http://host/**' 형식이라
+    // path 없는 origin('http://host')은 매치 안 되어 Site URL(production)로 fallback됨.
     await sb.auth.signInWithOAuth(
       provider,
-      redirectTo: kIsWeb ? Uri.base.origin : null,
+      redirectTo: kIsWeb ? '${Uri.base.origin}/' : null,
+    );
+  }
+
+  /// 첫 로그인 온보딩 완료 여부 (user_metadata.onboarding_seen).
+  /// 로그인된 사용자에게만 의미 있음.
+  static bool get onboardingSeen {
+    final user = currentUser;
+    return user?.userMetadata?['onboarding_seen'] == true;
+  }
+
+  /// 온보딩 보기 완료 표시 — 다음 로그인부터 자동으로 안 뜨게.
+  static Future<void> markOnboardingSeen() async {
+    await sb.auth.updateUser(
+      UserAttributes(data: {'onboarding_seen': true}),
     );
   }
 

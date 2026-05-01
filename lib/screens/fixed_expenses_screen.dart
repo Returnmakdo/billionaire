@@ -193,8 +193,9 @@ class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: EmptyCard(
+                      icon: Icons.repeat,
                       title: '등록된 정기지출이 없어요',
-                      body: '아래 + 버튼으로 월세·구독 등을 등록하세요.',
+                      body: '월세·구독·통신비를 등록하면 매달 자동으로 거래에 반영할 수 있어요.',
                     ),
                   )
                 else ...[

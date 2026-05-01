@@ -265,16 +265,16 @@ class Api {
     final majorRows = await sb
         .from('majors')
         .select('major')
-        .order('sort_order')
-        .order('major');
+        .order('sort_order', ascending: true)
+        .order('major', ascending: true);
     final majors =
         (majorRows as List).map((r) => r['major'] as String).toList();
     final rows = await sb
         .from('categories')
         .select('id, major, sub, sort_order')
-        .order('major')
-        .order('sort_order')
-        .order('id');
+        .order('major', ascending: true)
+        .order('sort_order', ascending: true)
+        .order('id', ascending: true);
     final flat = (rows as List)
         .map((e) => Category.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -366,8 +366,8 @@ class Api {
     final majorRows = await sb
         .from('majors')
         .select('major')
-        .order('sort_order')
-        .order('major');
+        .order('sort_order', ascending: true)
+        .order('major', ascending: true);
     final rows = await sb.from('budgets').select('major, monthly_amount');
     final map = <String, int>{
       for (final r in rows as List)
@@ -567,9 +567,9 @@ class Api {
         .select(
             'id, name, major, sub, amount, card, day_of_month, active, memo, sort_order')
         .order('active', ascending: false)
-        .order('day_of_month')
-        .order('sort_order')
-        .order('id');
+        .order('day_of_month', ascending: true)
+        .order('sort_order', ascending: true)
+        .order('id', ascending: true);
     return (rows as List)
         .map((e) => FixedExpense.fromJson(e as Map<String, dynamic>))
         .toList();

@@ -638,6 +638,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           const SizedBox(height: 10),
           if (rows.isEmpty)
             EmptyCard(
+              icon: hasFilter
+                  ? Icons.filter_alt_off_outlined
+                  : Icons.receipt_long_outlined,
               title: hasFilter
                   ? '조건에 맞는 거래가 없어요'
                   : '이번 달에 등록된 거래가 없어요',

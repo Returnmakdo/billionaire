@@ -354,7 +354,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _subList(List<SubCategoryStat> rows) {
     if (rows.isEmpty) {
-      return const EmptyCard(title: '이번 달 거래가 없어요');
+      return EmptyCard(
+        icon: Icons.receipt_long_outlined,
+        title: '이번 달 거래가 없어요',
+        body: '거래를 추가하면 패턴을 짚어드릴게요.',
+        actionLabel: '거래 추가',
+        onAction: () => context.go('/transactions'),
+      );
     }
     return AppCard(
       tight: true,
@@ -383,9 +389,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _trend(Dashboard d) {
     if (d.trend.isEmpty) {
-      return const EmptyCard(
+      return EmptyCard(
+        icon: Icons.show_chart,
         title: '아직 거래가 없어요',
-        body: '거래내역에서 첫 거래를 추가해보세요.',
+        body: '거래를 추가하면 6개월 추이가 보여요.',
+        actionLabel: '거래 추가',
+        onAction: () => context.go('/transactions'),
       );
     }
     return AppCard(

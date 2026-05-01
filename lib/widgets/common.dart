@@ -418,18 +418,42 @@ class SectionTitle extends StatelessWidget {
 
 /// 빈 상태 카드.
 class EmptyCard extends StatelessWidget {
-  const EmptyCard({super.key, required this.title, this.body});
+  const EmptyCard({
+    super.key,
+    required this.title,
+    this.body,
+    this.icon,
+    this.actionLabel,
+    this.onAction,
+  });
   final String title;
   final String? body;
+  final IconData? icon;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          if (icon != null) ...[
+            Container(
+              width: 56,
+              height: 56,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.primaryWeak,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, size: 26, color: AppColors.primary),
+            ),
+            const SizedBox(height: 14),
+          ],
           Text(title,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
@@ -442,7 +466,23 @@ class EmptyCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.text3,
+                  height: 1.5,
                 )),
+          ],
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: onAction,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(0, 40),
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                textStyle: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              child: Text(actionLabel!),
+            ),
           ],
         ],
       ),

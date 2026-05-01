@@ -87,6 +87,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : null,
                 onTap: _exporting ? null : _exportCsv,
               ),
+              _MenuItem(
+                icon: Icons.help_outline,
+                title: '도움말',
+                subtitle: '소개 슬라이드 + 화면별 사용법',
+                onTap: () => context.push('/settings/help'),
+              ),
             ]),
           ],
         ),

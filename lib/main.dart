@@ -12,7 +12,9 @@ import 'screens/budgets_screen.dart';
 import 'screens/categories_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/fixed_expenses_screen.dart';
+import 'screens/help_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'screens/reset_password_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/shell_screen.dart';
@@ -76,11 +78,16 @@ class _BudgetAppState extends State<BudgetApp> {
         final loggedIn = AuthService.currentUser != null;
         final atLogin = state.matchedLocation == '/login';
         final atReset = state.matchedLocation == '/reset-password';
+        final atOnboarding = state.matchedLocation == '/onboarding';
         // 비밀번호 재설정 메일 링크로 들어왔으면 무조건 reset 화면
         if (AuthService.recoveryMode.value && loggedIn) {
           return atReset ? null : '/reset-password';
         }
         if (!loggedIn) return atLogin ? null : '/login';
+        // 첫 로그인 — onboarding_seen 안 됐으면 슬라이드로
+        if (!AuthService.onboardingSeen && !atOnboarding) {
+          return '/onboarding';
+        }
         if (atLogin) return '/dashboard';
         if (atReset) return '/dashboard';
         return null;
@@ -109,11 +116,23 @@ class _BudgetAppState extends State<BudgetApp> {
               path: 'categories',
               builder: (_, _) => const CategoriesScreen(),
             ),
+            GoRoute(
+              path: 'help',
+              builder: (_, _) => const HelpScreen(),
+            ),
           ],
         ),
         GoRoute(
           path: '/reset-password',
           builder: (_, _) => const ResetPasswordScreen(),
+        ),
+        GoRoute(
+          path: '/onboarding',
+          builder: (_, state) {
+            final fromHelp =
+                state.uri.queryParameters['from'] == 'help';
+            return OnboardingScreen(fromHelp: fromHelp);
+          },
         ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) =>

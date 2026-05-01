@@ -51,13 +51,18 @@ class _TxModalState extends State<_TxModal> {
   late bool _isFixed;
   bool _saving = false;
 
+  // 모달 안에서 카테고리/태그를 즉석 생성하면 cats가 갱신돼야 dropdown에 표시됨.
+  // props는 immutable이라 state에 mutable 복사본을 둠.
+  late CategoriesData _cats;
+
   bool get _editing => widget.tx != null;
 
   @override
   void initState() {
     super.initState();
     final tx = widget.tx;
-    final majors = widget.cats.majors;
+    _cats = widget.cats;
+    final majors = _cats.majors;
     _major = tx?.majorCategory ?? (majors.isNotEmpty ? majors.first : '');
     _sub = tx?.subCategory;
     _date = TextEditingController(text: tx?.date ?? todayIso());
@@ -207,7 +212,7 @@ class _TxModalState extends State<_TxModal> {
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
-    final subs = widget.cats.byMajor[_major] ?? const [];
+    final subs = _cats.byMajor[_major] ?? const [];
     return Padding(
       padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
       child: Container(
@@ -394,19 +399,28 @@ class _TxModalState extends State<_TxModal> {
     );
   }
 
+  static const _addMajorSentinel = '__add_major__';
+  static const _addSubSentinel = '__add_sub__';
+
   Widget _majorDropdown() {
-    final majors = widget.cats.majors;
+    final majors = _cats.majors;
     return AppDropdown<String>(
       label: '카테고리',
       value: majors.contains(_major) ? _major : null,
       items: [
         for (final m in majors) AppDropdownItem(value: m, label: m),
+        const AppDropdownItem(
+            value: _addMajorSentinel, label: '+ 새 카테고리 추가'),
       ],
       onChanged: (v) {
-        setState(() {
-          _major = v;
-          _sub = null;
-        });
+        if (v == _addMajorSentinel) {
+          _addMajor();
+        } else {
+          setState(() {
+            _major = v;
+            _sub = null;
+          });
+        }
       },
     );
   }
@@ -418,9 +432,104 @@ class _TxModalState extends State<_TxModal> {
       items: [
         const AppDropdownItem(value: '', label: '(없음)'),
         for (final s in subs) AppDropdownItem(value: s.sub, label: s.sub),
+        if (_major.isNotEmpty)
+          const AppDropdownItem(
+              value: _addSubSentinel, label: '+ 새 태그 추가'),
       ],
-      onChanged: (v) => setState(() => _sub = v.isEmpty ? null : v),
+      onChanged: (v) {
+        if (v == _addSubSentinel) {
+          _addSub();
+        } else {
+          setState(() => _sub = v.isEmpty ? null : v);
+        }
+      },
     );
+  }
+
+  Future<void> _addMajor() async {
+    final name = await _promptText(
+      title: '새 카테고리 추가',
+      hint: '예: 식비/카페',
+      confirmText: '추가',
+    );
+    if (name == null) return;
+    try {
+      final created = await Api.instance.createMajor(name);
+      // 카테고리 목록 갱신.
+      final fresh = await Api.instance.listCategories();
+      if (!mounted) return;
+      setState(() {
+        _cats = fresh;
+        _major = created.name;
+        _sub = null;
+      });
+      showToast(context, '카테고리 추가 완료');
+    } catch (e) {
+      if (mounted) showToast(context, errorMessage(e), error: true);
+    }
+  }
+
+  Future<void> _addSub() async {
+    if (_major.isEmpty) return;
+    final name = await _promptText(
+      title: '$_major에 새 태그 추가',
+      hint: '예: 점심',
+      confirmText: '추가',
+    );
+    if (name == null) return;
+    try {
+      final created = await Api.instance.createCategory(_major, name);
+      final fresh = await Api.instance.listCategories();
+      if (!mounted) return;
+      setState(() {
+        _cats = fresh;
+        _sub = created.sub;
+      });
+      showToast(context, '태그 추가 완료');
+    } catch (e) {
+      if (mounted) showToast(context, errorMessage(e), error: true);
+    }
+  }
+
+  Future<String?> _promptText({
+    required String title,
+    required String hint,
+    String confirmText = '확인',
+  }) async {
+    final ctrl = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title:
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: InputDecoration(hintText: hint),
+          onSubmitted: (_) =>
+              Navigator.of(ctx).pop(ctrl.text.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('취소',
+                style: TextStyle(color: AppColors.text2)),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(ctx).pop(ctrl.text.trim()),
+            child: Text(confirmText,
+                style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    return (result == null || result.isEmpty) ? null : result;
   }
 
   List<String> _merchantSuggestions() {

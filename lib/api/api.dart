@@ -10,8 +10,19 @@ import 'models.dart';
 /// Supabase에 직접 통신하는 Repository.
 /// public/js/api.js와 시그니처를 맞춰서 화면 코드가 1:1 매핑되도록 한다.
 class Api {
-  Api._();
+  Api._() {
+    _lastUserId = sb.auth.currentUser?.id;
+    sb.auth.onAuthStateChange.listen((state) {
+      final newId = state.session?.user.id;
+      if (newId != _lastUserId) {
+        _lastUserId = newId;
+        invalidateAllCaches();
+      }
+    });
+  }
   static final Api instance = Api._();
+
+  String? _lastUserId;
 
   // ── transactions 캐시 ───────────────────────────────────────
   List<Tx>? _txCache;
@@ -29,7 +40,16 @@ class Api {
     txVersion.value++;
   }
 
-  void invalidateAllCaches() => invalidateTx();
+  /// 모든 캐시 무효화 + 모든 버전 bump → listening 중인 화면들이 일괄 reload.
+  /// 사용자 전환(로그아웃→다른 계정 로그인) 시 호출.
+  void invalidateAllCaches() {
+    _txCache = null;
+    txVersion.value++;
+    majorsVersion.value++;
+    categoriesVersion.value++;
+    budgetsVersion.value++;
+    fixedVersion.value++;
+  }
 
   String _uid() {
     final id = AuthService.currentUserId;

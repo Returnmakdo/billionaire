@@ -163,7 +163,7 @@ class SpendingSummaryPage extends StatelessWidget {
             children: [
               Text(
                 smartWon(d.thisMonthTotal),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -173,7 +173,7 @@ class SpendingSummaryPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              const Text(
+              Text(
                 '원',
                 style: TextStyle(
                   fontSize: 16,
@@ -241,7 +241,7 @@ class SpendingPatternPage extends StatelessWidget {
           _SectionLabel(title: section.title),
           const SizedBox(height: 12),
           if (topShown.isNotEmpty) ...[
-            const Text(
+            Text(
               '자주 간 가맹점',
               style: TextStyle(
                 fontSize: 11.5,
@@ -358,7 +358,7 @@ class SpendingSuggestionPage extends StatelessWidget {
                   width: 32,
                   height: 32,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.primary,
                     shape: BoxShape.circle,
                   ),
@@ -375,7 +375,7 @@ class SpendingSuggestionPage extends StatelessWidget {
           ),
           if (topMajors.isNotEmpty) ...[
             const SizedBox(height: 16),
-            const Text(
+            Text(
               '함께 살펴볼 변동비 카테고리',
               style: TextStyle(
                 fontSize: 11.5,
@@ -556,7 +556,7 @@ class _SectionLabel extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Pretendard',
             fontSize: 14.5,
             fontWeight: FontWeight.w700,
@@ -579,18 +579,18 @@ class _PageBody extends StatelessWidget {
       softLineBreak: true,
       extensionSet: md.ExtensionSet.gitHubFlavored,
       styleSheet: MarkdownStyleSheet(
-        p: const TextStyle(
+        p: TextStyle(
           fontFamily: 'Pretendard',
           fontSize: 13.5,
           height: 1.6,
           color: AppColors.text,
         ),
-        strong: const TextStyle(
+        strong: TextStyle(
           fontFamily: 'Pretendard',
           fontWeight: FontWeight.w700,
           color: AppColors.text,
         ),
-        listBullet: const TextStyle(
+        listBullet: TextStyle(
           fontFamily: 'Pretendard',
           fontSize: 13.5,
           height: 1.6,
@@ -713,7 +713,7 @@ class _MerchantBar extends StatelessWidget {
                 name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.text,
@@ -723,7 +723,7 @@ class _MerchantBar extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               '${smartWon(total)}원',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 color: AppColors.text2,
@@ -733,7 +733,7 @@ class _MerchantBar extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               '· $count건',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11.5,
                 color: AppColors.text3,
               ),
@@ -814,7 +814,7 @@ class _BudgetRow extends StatelessWidget {
                 entry.major,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.text,
@@ -862,7 +862,7 @@ class _BudgetRow extends StatelessWidget {
           padding: const EdgeInsets.only(left: 14),
           child: Text(
             '${smartWon(entry.spent)}원 / ${smartWon(entry.budget)}원',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11.5,
               color: AppColors.text3,
               fontFeatures: [FontFeature.tabularFigures()],

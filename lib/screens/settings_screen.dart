@@ -46,10 +46,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.text2),
+          icon: Icon(Icons.arrow_back, color: AppColors.text2),
           onPressed: () => goBackOr(context, '/dashboard'),
         ),
-        title: const Text(
+        title: Text(
           '설정',
           style: TextStyle(
             fontSize: 17,
@@ -96,6 +96,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: _exporting ? null : _exportCsv,
               ),
               _MenuItem(
+                icon: Icons.dark_mode_outlined,
+                title: '테마',
+                subtitle: '시스템 / 라이트 / 다크',
+                onTap: () => context.go('/settings/theme'),
+              ),
+              _MenuItem(
                 icon: Icons.help_outline,
                 title: '도움말',
                 subtitle: '소개 슬라이드 + 화면별 사용법',
@@ -116,7 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           for (var i = 0; i < items.length; i++) ...[
             if (i > 0)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Divider(height: 1, color: AppColors.line2),
               ),
@@ -173,7 +179,7 @@ class _MenuRow extends StatelessWidget {
                 children: [
                   Text(
                     item.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w600,
                       color: AppColors.text,
@@ -183,7 +189,7 @@ class _MenuRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       item.subtitle!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         color: AppColors.text3,
                       ),
@@ -194,7 +200,7 @@ class _MenuRow extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             item.trailing ??
-                const Icon(Icons.chevron_right,
+                Icon(Icons.chevron_right,
                     size: 22, color: AppColors.text4),
           ],
         ),

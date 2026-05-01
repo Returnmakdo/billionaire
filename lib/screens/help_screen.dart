@@ -18,10 +18,10 @@ class HelpScreen extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.text2),
+          icon: Icon(Icons.arrow_back, color: AppColors.text2),
           onPressed: () => goBackOr(context, '/settings'),
         ),
-        title: const Text(
+        title: Text(
           '도움말',
           style: TextStyle(
             fontSize: 17,
@@ -51,7 +51,7 @@ class HelpScreen extends StatelessWidget {
                       width: 40,
                       height: 40,
                       alignment: Alignment.center,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: AppColors.primary,
                         shape: BoxShape.circle,
                       ),
@@ -62,7 +62,7 @@ class HelpScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -85,7 +85,7 @@ class HelpScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right,
+                    Icon(Icons.chevron_right,
                         size: 22, color: AppColors.primaryStrong),
                   ],
                 ),
@@ -196,7 +196,7 @@ class _GroupTitle extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w700,
           color: AppColors.text2,
@@ -241,7 +241,7 @@ class _GuideCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w700,
                       color: AppColors.text,
@@ -261,7 +261,7 @@ class _GuideCard extends StatelessWidget {
                       margin: const EdgeInsets.only(top: 7),
                       width: 3,
                       height: 3,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: AppColors.text3,
                         shape: BoxShape.circle,
                       ),
@@ -270,7 +270,7 @@ class _GuideCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         p,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           color: AppColors.text,
                           height: 1.55,

@@ -108,7 +108,7 @@ class _AiInsightCardState extends State<AiInsightCard> {
               ),
             )
           else if (_loading)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 18, vertical: 18),
               child: Row(
                 children: [
@@ -133,7 +133,7 @@ class _AiInsightCardState extends State<AiInsightCard> {
                 children: [
                   Text(
                     errorMessage(_error!),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.danger,
                       fontSize: 13,
                     ),
@@ -168,7 +168,7 @@ class _AiInsightCardState extends State<AiInsightCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
+                  Text(
                     '이번 달 거래를 보고 패턴, 특징, 다음 달 제안을 짚어드려요.',
                     style: TextStyle(
                       color: AppColors.text2,
@@ -206,7 +206,7 @@ class _AiInsightCardState extends State<AiInsightCard> {
               child: Text(
                 '이전 분석 · ${_relativeTime(insight.generatedAt!)} 생성',
                 style:
-                    const TextStyle(fontSize: 12, color: AppColors.text3),
+                    TextStyle(fontSize: 12, color: AppColors.text3),
                 overflow: TextOverflow.ellipsis,
               ),
             )
@@ -368,7 +368,7 @@ class _Headline extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Pretendard',
           fontSize: 15.5,
           fontWeight: FontWeight.w700,

@@ -1,5 +1,6 @@
+// ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use, uri_does_not_exist
+
 import 'dart:convert';
-// ignore: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:html' as html;
 import 'dart:js_util' as js_util;
 

@@ -34,7 +34,7 @@ class MerchantItem extends StatelessWidget {
           SizedBox(
             width: 18,
             child: Text('$rank',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: AppColors.text3,
@@ -50,7 +50,7 @@ class MerchantItem extends StatelessWidget {
                 children: [
                   TextSpan(
                       text: title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.text,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -59,7 +59,7 @@ class MerchantItem extends StatelessWidget {
                     const TextSpan(text: '  '),
                     TextSpan(
                         text: subtitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.text3,
                           fontWeight: FontWeight.w500,
                           fontSize: 12,
@@ -77,7 +77,7 @@ class MerchantItem extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('${won(amount)}원',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
                     color: AppColors.text,
@@ -85,7 +85,7 @@ class MerchantItem extends StatelessWidget {
                   )),
               const SizedBox(height: 2),
               Text('$count건',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11.5,
                     color: AppColors.text3,
                     fontFeatures: [FontFeature.tabularFigures()],

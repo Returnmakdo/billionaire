@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show ValueNotifier, kIsWeb;
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase.dart';
 
@@ -14,13 +15,45 @@ class AuthService {
   /// 사용자 정보(이름 등) 변경 시 bump. 화면들이 listening해서 자동 rebuild용.
   static final ValueNotifier<int> userVersion = ValueNotifier(0);
 
+  /// 앱 테마 모드 — system / light / dark. user_metadata에 영구 저장.
+  /// 로그인 시 initListeners()에서 metadata 읽어와 동기화.
+  static final ValueNotifier<ThemeMode> themeMode =
+      ValueNotifier(ThemeMode.system);
+
+  static Future<void> setThemeMode(ThemeMode mode) async {
+    themeMode.value = mode;
+    try {
+      await sb.auth.updateUser(
+        UserAttributes(data: {'theme_mode': mode.name}),
+      );
+    } catch (_) {/* 저장 실패해도 in-memory 적용은 됨 */}
+  }
+
+  static void _syncThemeFromUser() {
+    final saved =
+        currentUser?.userMetadata?['theme_mode'] as String?;
+    themeMode.value = switch (saved) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
+  }
+
   /// supabase 측에서 user 정보가 바뀌면(updateUser, refreshSession 등) userUpdated
   /// 이벤트가 fire — 그때 userVersion bump해서 listening 화면들 자동 갱신.
   /// main()의 initSupabase 후 한 번 호출.
   static void initListeners() {
+    // 초기 진입 시 user 있으면 테마 동기화.
+    if (currentUser != null) _syncThemeFromUser();
+
     sb.auth.onAuthStateChange.listen((data) {
       if (data.event == AuthChangeEvent.userUpdated) {
         userVersion.value++;
+      }
+      // signedIn / userUpdated 시 테마 메타도 다시 동기화.
+      if (data.event == AuthChangeEvent.signedIn ||
+          data.event == AuthChangeEvent.userUpdated) {
+        _syncThemeFromUser();
       }
     });
   }

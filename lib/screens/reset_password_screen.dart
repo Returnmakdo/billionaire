@@ -65,7 +65,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
+        ..showSnackBar(SnackBar(
           content: Text('비밀번호를 변경했어요. 새 비밀번호로 로그인해주세요'),
           backgroundColor: AppColors.text,
           duration: Duration(seconds: 4),
@@ -125,7 +125,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           fontSize: 22, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       '비밀번호를 새로 설정해주세요',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -169,9 +169,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         suffixIcon: _passConfirmCtrl.text.isEmpty
                             ? null
                             : (_passwordsMatch
-                                ? const Icon(Icons.check_circle_outline,
+                                ? Icon(Icons.check_circle_outline,
                                     color: AppColors.success, size: 20)
-                                : const Icon(Icons.error_outline,
+                                : Icon(Icons.error_outline,
                                     color: AppColors.danger, size: 20)),
                       ),
                     ),
@@ -183,7 +183,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: _busy ? null : _cancel,
-                      child: const Text(
+                      child: Text(
                         '취소하고 로그인 화면으로',
                         style: TextStyle(
                             color: AppColors.text3, fontSize: 13),
@@ -207,7 +207,7 @@ class _Label extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
           fontSize: 13,
           color: AppColors.text2,
           fontWeight: FontWeight.w500),

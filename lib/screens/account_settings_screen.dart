@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show User;
 
 import '../auth.dart';
@@ -141,10 +140,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.text2),
+          icon: Icon(Icons.arrow_back, color: AppColors.text2),
           onPressed: () => goBackOr(context, '/settings'),
         ),
-        title: const Text(
+        title: Text(
           '계정 관리',
           style: TextStyle(
             fontSize: 17,
@@ -204,7 +203,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('계정',
+          Text('계정',
               style: TextStyle(
                 fontSize: 12.5,
                 color: AppColors.text3,
@@ -212,7 +211,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               )),
           const SizedBox(height: 8),
           _row('이메일', Text(email,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 color: AppColors.text,
                 fontWeight: FontWeight.w500,
@@ -226,7 +225,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   Widget _providerBadge(List<String> providers) {
     if (providers.isEmpty) {
-      return const Text('-',
+      return Text('-',
           style: TextStyle(
             fontSize: 14,
             color: AppColors.text,
@@ -251,7 +250,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           SizedBox(
             width: 80,
             child: Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   color: AppColors.text3,
                 )),
@@ -268,7 +267,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('이름',
+          Text('이름',
               style: TextStyle(
                 fontSize: 12.5,
                 color: AppColors.text3,
@@ -306,7 +305,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('비밀번호 변경',
+          Text('비밀번호 변경',
               style: TextStyle(
                 fontSize: 12.5,
                 color: AppColors.text3,
@@ -348,9 +347,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               suffixIcon: _newPassConfirmCtrl.text.isEmpty
                   ? null
                   : (_passwordsMatch
-                      ? const Icon(Icons.check_circle_outline,
+                      ? Icon(Icons.check_circle_outline,
                           color: AppColors.success, size: 20)
-                      : const Icon(Icons.error_outline,
+                      : Icon(Icons.error_outline,
                           color: AppColors.danger, size: 20)),
             ),
           ),
@@ -390,7 +389,7 @@ class _ProviderChip extends StatelessWidget {
         label = 'Google';
         break;
       case 'email':
-        icon = const Icon(Icons.mail_outline,
+        icon = Icon(Icons.mail_outline,
             size: 14, color: AppColors.text2);
         label = '이메일';
         break;
@@ -415,7 +414,7 @@ class _ProviderChip extends StatelessWidget {
         label = 'Kakao';
         break;
       default:
-        icon = const Icon(Icons.account_circle_outlined,
+        icon = Icon(Icons.account_circle_outlined,
             size: 14, color: AppColors.text2);
         label = provider;
     }
@@ -433,7 +432,7 @@ class _ProviderChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
               color: AppColors.text,
@@ -479,7 +478,7 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             '계정과 모든 거래내역·카테고리·예산·정기지출이 영구 삭제돼요. '
             '복구할 수 없어요.',
             style: TextStyle(fontSize: 13.5, color: AppColors.text2),
@@ -487,13 +486,13 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
           const SizedBox(height: 14),
           RichText(
             text: TextSpan(
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 13, color: AppColors.text2),
               children: [
                 const TextSpan(text: '확인을 위해 '),
                 TextSpan(
                   text: widget.requiredText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.danger,
                     fontWeight: FontWeight.w700,
                   ),
@@ -517,7 +516,7 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('취소',
+          child: Text('취소',
               style: TextStyle(color: AppColors.text2)),
         ),
         TextButton(

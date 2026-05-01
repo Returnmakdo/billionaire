@@ -535,7 +535,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     ],
                   ),
                 ),
-                if (i < 4) const Divider(color: AppColors.line2, height: 1),
+                if (i < 4) Divider(color: AppColors.line2, height: 1),
               ],
             ],
           ),
@@ -551,7 +551,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         TextField(
           controller: _qCtrl,
           onChanged: _onQChanged,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: '가맹점/메모 검색',
             prefixIcon: Icon(Icons.search,
                 color: AppColors.text3, size: 20),
@@ -611,7 +611,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         return Padding(
           padding: const EdgeInsets.all(24),
           child: Text(errorMessage(_txError!),
-              style: const TextStyle(color: AppColors.danger)),
+              style: TextStyle(color: AppColors.danger)),
         );
       }
       return Padding(
@@ -720,7 +720,7 @@ class _Summary extends StatelessWidget {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(won(total),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
                     color: AppColors.text,
@@ -728,7 +728,7 @@ class _Summary extends StatelessWidget {
                     fontFeatures: [FontFeature.tabularFigures()],
                   )),
               const SizedBox(width: 4),
-              const Text('원',
+              Text('원',
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.text3,
@@ -736,7 +736,7 @@ class _Summary extends StatelessWidget {
                   )),
               const Spacer(),
               Text('$count건',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12.5,
                     color: AppColors.text3,
                   )),
@@ -771,7 +771,7 @@ class _PendingFixedBanner extends StatelessWidget {
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.text,
                   fontSize: 13.5,
                 ),
@@ -823,12 +823,12 @@ class _Chip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 12.5,
                     color: AppColors.text2,
                     fontWeight: FontWeight.w500)),
             const SizedBox(width: 6),
-            const Icon(Icons.close, size: 14, color: AppColors.text3),
+            Icon(Icons.close, size: 14, color: AppColors.text3),
           ],
         ),
       ),
@@ -944,7 +944,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
       child: Container(
         constraints: BoxConstraints(maxHeight: mq.size.height * 0.8),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius:
               BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
@@ -971,7 +971,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                   const Spacer(),
                   TextButton(
                     onPressed: _reset,
-                    child: const Text('초기화',
+                    child: Text('초기화',
                         style: TextStyle(
                             color: AppColors.text3, fontSize: 13)),
                   ),
@@ -984,7 +984,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('금액 범위',
+                    Text('금액 범위',
                         style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -998,7 +998,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                             label: '최소',
                           ),
                         ),
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.symmetric(horizontal: 6),
                           child: Text('~',
                               style: TextStyle(
@@ -1013,7 +1013,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    const Text('정렬',
+                    Text('정렬',
                         style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -1064,7 +1064,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             Container(
               padding: EdgeInsets.fromLTRB(
                   20, 12, 20, 12 + mq.padding.bottom * 0.4),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(top: BorderSide(color: AppColors.line2)),
               ),
               child: FilledButton(

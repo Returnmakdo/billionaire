@@ -47,7 +47,7 @@ class TxRow extends StatelessWidget {
                               : '(가맹점 없음)',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14.5,
                             fontWeight: FontWeight.w600,
                             color: AppColors.text,
@@ -56,14 +56,14 @@ class TxRow extends StatelessWidget {
                       ),
                       if (tx.isFixed) ...[
                         const SizedBox(width: 6),
-                        const Pill(
+                        Pill(
                             label: '고정',
                             color: AppColors.primary,
                             bg: AppColors.primaryWeak),
                       ],
                       if (isRecurring) ...[
                         const SizedBox(width: 4),
-                        const Pill(
+                        Pill(
                             label: '정기',
                             color: AppColors.success,
                             bg: Color(0xFFDFF7EB)),
@@ -74,7 +74,7 @@ class TxRow extends StatelessWidget {
                   Text(meta.toString(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppColors.text3,
                       )),
@@ -83,13 +83,13 @@ class TxRow extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Text('${won(tx.amount)}원',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14.5,
                   fontWeight: FontWeight.w700,
                   color: AppColors.text,
                   fontFeatures: [FontFeature.tabularFigures()],
                 )),
-            const Icon(Icons.chevron_right,
+            Icon(Icons.chevron_right,
                 color: AppColors.text4, size: 20),
           ],
         ),
@@ -112,13 +112,13 @@ class TxDayHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(fmtDate(date),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 color: AppColors.text3,
               )),
           Text('${won(total)}원',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 color: AppColors.text3,

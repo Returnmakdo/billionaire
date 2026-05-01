@@ -95,7 +95,7 @@ class _KoMonthPickerDialogState extends State<_KoMonthPickerDialog> {
           children: [
             Row(
               children: [
-                const Text('월 선택',
+                Text('월 선택',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -105,7 +105,7 @@ class _KoMonthPickerDialogState extends State<_KoMonthPickerDialog> {
                 IconButton(
                   visualDensity: VisualDensity.compact,
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close,
+                  icon: Icon(Icons.close,
                       size: 20, color: AppColors.text3),
                 ),
               ],
@@ -122,7 +122,7 @@ class _KoMonthPickerDialogState extends State<_KoMonthPickerDialog> {
                   child: Center(
                     child: Text(
                       '$_viewYear년',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: AppColors.text,
@@ -291,7 +291,7 @@ class _KoDatePickerDialogState extends State<_KoDatePickerDialog> {
           children: [
             Row(
               children: [
-                const Text('날짜 선택',
+                Text('날짜 선택',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -301,7 +301,7 @@ class _KoDatePickerDialogState extends State<_KoDatePickerDialog> {
                 IconButton(
                   visualDensity: VisualDensity.compact,
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close,
+                  icon: Icon(Icons.close,
                       size: 20, color: AppColors.text3),
                 ),
               ],
@@ -359,7 +359,7 @@ class _KoDatePickerDialogState extends State<_KoDatePickerDialog> {
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('취소',
+                    child: Text('취소',
                         style: TextStyle(
                           color: AppColors.text2,
                           fontWeight: FontWeight.w600,

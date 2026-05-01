@@ -217,7 +217,7 @@ class _TxModalState extends State<_TxModal> {
       padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
       child: Container(
         constraints: BoxConstraints(maxHeight: mq.size.height * 0.92),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius:
               BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
@@ -246,7 +246,7 @@ class _TxModalState extends State<_TxModal> {
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, color: AppColors.text3),
+                    icon: Icon(Icons.close, color: AppColors.text3),
                   ),
                 ],
               ),
@@ -309,7 +309,7 @@ class _TxModalState extends State<_TxModal> {
                               }),
                             ),
                             const SizedBox(width: 8),
-                            const Expanded(
+                            Expanded(
                               child: Column(
                                 crossAxisAlignment:
                                     CrossAxisAlignment.start,
@@ -332,7 +332,7 @@ class _TxModalState extends State<_TxModal> {
                     ),
                     if (_editing) ...[
                       const SizedBox(height: 8),
-                      const Divider(color: AppColors.line2, height: 1),
+                      Divider(color: AppColors.line2, height: 1),
                       const SizedBox(height: 8),
                       TextButton.icon(
                         onPressed: _registerAsFixed,
@@ -368,7 +368,7 @@ class _TxModalState extends State<_TxModal> {
             Container(
               padding: EdgeInsets.fromLTRB(
                   20, 12, 20, 12 + mq.padding.bottom * 0.4),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border:
                     Border(top: BorderSide(color: AppColors.line2)),
               ),
@@ -389,7 +389,7 @@ class _TxModalState extends State<_TxModal> {
       child: AbsorbPointer(
         child: TextField(
           controller: _date,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: '날짜',
             suffixIcon:
                 Icon(Icons.calendar_today, size: 18, color: AppColors.text3),
@@ -514,14 +514,14 @@ class _TxModalState extends State<_TxModal> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('취소',
+            child: Text('취소',
                 style: TextStyle(color: AppColors.text2)),
           ),
           TextButton(
             onPressed: () =>
                 Navigator.of(ctx).pop(ctrl.text.trim()),
             child: Text(confirmText,
-                style: const TextStyle(
+                style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600)),
           ),
@@ -581,7 +581,7 @@ class _TxModalState extends State<_TxModal> {
             padding: const EdgeInsets.only(top: 6, left: 4),
             child: Text(
               emptyHint,
-              style: const TextStyle(fontSize: 11.5, color: AppColors.text4),
+              style: TextStyle(fontSize: 11.5, color: AppColors.text4),
             ),
           ),
       ],

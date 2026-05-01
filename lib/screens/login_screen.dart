@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
+            Text(
               '가입한 이메일을 입력하시면 재설정 링크를 보내드려요.',
               style: TextStyle(fontSize: 13, color: AppColors.text2),
             ),
@@ -210,12 +210,12 @@ class _LoginScreenState extends State<LoginScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('취소',
+            child: Text('취소',
                 style: TextStyle(color: AppColors.text2)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
-            child: const Text('메일 보내기',
+            child: Text('메일 보내기',
                 style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600)),
@@ -233,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(
+          ..showSnackBar(SnackBar(
             content: Text(
                 '재설정 메일을 보냈어요. 메일함을 확인해주세요'),
             backgroundColor: AppColors.text,
@@ -271,11 +271,11 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
     if (_emailFormatError != null || _emailExists) {
-      return const Icon(Icons.error_outline,
+      return Icon(Icons.error_outline,
           color: AppColors.danger, size: 20);
     }
     if (_emailRegex.hasMatch(_emailCtrl.text.trim())) {
-      return const Icon(Icons.check_circle_outline,
+      return Icon(Icons.check_circle_outline,
           color: AppColors.success, size: 20);
     }
     return null;
@@ -356,7 +356,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       subtitle,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.text3, fontSize: 14),
+                      style: TextStyle(color: AppColors.text3, fontSize: 14),
                     ),
                     const SizedBox(height: 24),
                     if (_signupMode) ...[
@@ -425,7 +425,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             tapTargetSize:
                                 MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text(
+                          child: Text(
                             '비밀번호 잊으셨나요?',
                             style: TextStyle(
                               fontSize: 12.5,
@@ -457,9 +457,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           suffixIcon: _passConfirmCtrl.text.isEmpty
                               ? null
                               : (_passwordsMatch
-                                  ? const Icon(Icons.check_circle_outline,
+                                  ? Icon(Icons.check_circle_outline,
                                       color: AppColors.success, size: 20)
-                                  : const Icon(Icons.error_outline,
+                                  : Icon(Icons.error_outline,
                                       color: AppColors.danger, size: 20)),
                         ),
                       ),
@@ -492,7 +492,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Text(
                           _signupMode ? '이미 계정이 있으신가요?' : '계정이 없으신가요?',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.text3,
                             fontSize: 13,
                           ),
@@ -506,7 +506,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: Text(
                             _signupMode ? '로그인' : '회원가입',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 13,
                               color: AppColors.primary,
@@ -533,7 +533,7 @@ class _Label extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(fontSize: 13, color: AppColors.text2, fontWeight: FontWeight.w500),
+      style: TextStyle(fontSize: 13, color: AppColors.text2, fontWeight: FontWeight.w500),
     );
   }
 }
@@ -542,7 +542,7 @@ class _OrDivider extends StatelessWidget {
   const _OrDivider();
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
         Expanded(child: Divider(color: AppColors.line2, height: 1)),
         Padding(

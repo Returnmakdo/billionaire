@@ -238,7 +238,7 @@ class _BudgetEditCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(major,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.text)),
@@ -263,12 +263,12 @@ class _BudgetEditCard extends StatelessWidget {
               children: [
                 TextSpan(
                     text: '${won(spent)}원',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.text,
                       fontWeight: FontWeight.w700,
                       fontFeatures: [FontFeature.tabularFigures()],
                     )),
-                const TextSpan(
+                TextSpan(
                     text: ' 사용',
                     style: TextStyle(color: AppColors.text2)),
               ],

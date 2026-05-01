@@ -42,7 +42,7 @@ class PageHeader extends StatelessWidget {
     final subtitleWidget = (subtitle != null && subtitle!.isNotEmpty)
         ? Text(
             subtitle!,
-            style: const TextStyle(fontSize: 14, color: AppColors.text3),
+            style: TextStyle(fontSize: 14, color: AppColors.text3),
           )
         : null;
     final hasActions = acts != null && acts.isNotEmpty;
@@ -84,7 +84,7 @@ class PageHeader extends StatelessWidget {
       title,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 19,
         fontWeight: FontWeight.w700,
         color: AppColors.text,
@@ -153,7 +153,7 @@ class _LogoutButton extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: AppColors.text,
@@ -161,7 +161,7 @@ class _LogoutButton extends StatelessWidget {
                     if (email != null && email.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(email,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             color: AppColors.text3,
                           )),
@@ -173,7 +173,7 @@ class _LogoutButton extends StatelessWidget {
           ),
         ),
         const PopupMenuDivider(height: 1),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'settings',
           child: Row(
             children: [
@@ -188,7 +188,7 @@ class _LogoutButton extends StatelessWidget {
             ],
           ),
         ),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'logout',
           child: Row(
             children: [
@@ -259,7 +259,7 @@ class _LogoutButton extends StatelessWidget {
               child: Center(
                 child: Text(
                   _initial(name),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.text2,
@@ -307,7 +307,7 @@ class MonthSwitcher extends StatelessWidget {
               )),
           if (onTapLabel != null) ...[
             const SizedBox(width: 2),
-            const Icon(Icons.expand_more,
+            Icon(Icons.expand_more,
                 size: 16, color: AppColors.text3),
           ],
         ],
@@ -329,7 +329,7 @@ class MonthSwitcher extends StatelessWidget {
             padding: EdgeInsets.all(compact ? 4 : 8),
             constraints: const BoxConstraints(),
             onPressed: onPrev,
-            icon: const Icon(Icons.chevron_left,
+            icon: Icon(Icons.chevron_left,
                 color: AppColors.text2),
           ),
           if (onTapLabel != null)
@@ -346,7 +346,7 @@ class MonthSwitcher extends StatelessWidget {
             padding: EdgeInsets.all(compact ? 4 : 8),
             constraints: const BoxConstraints(),
             onPressed: onNext,
-            icon: const Icon(Icons.chevron_right,
+            icon: Icon(Icons.chevron_right,
                 color: AppColors.text2),
           ),
         ],
@@ -408,7 +408,7 @@ class SectionTitle extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
                 color: AppColors.text,
@@ -418,7 +418,7 @@ class SectionTitle extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(meta!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: AppColors.text3,
                   )),
@@ -468,7 +468,7 @@ class EmptyCard extends StatelessWidget {
           ],
           Text(title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
                 color: AppColors.text,
@@ -477,7 +477,7 @@ class EmptyCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(body!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   color: AppColors.text3,
                   height: 1.5,
@@ -629,7 +629,7 @@ Future<bool> confirmDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(false),
-          child: const Text('취소',
+          child: Text('취소',
               style: TextStyle(color: AppColors.text2)),
         ),
         TextButton(
@@ -735,7 +735,7 @@ class AppDropdown<T> extends StatelessWidget {
                   children: [
                     if (label != null)
                       Text(label!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11.5,
                             color: AppColors.text3,
                             height: 1.2,
@@ -751,7 +751,7 @@ class AppDropdown<T> extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.expand_more,
+              Icon(Icons.expand_more,
                   size: 20, color: AppColors.text3),
             ],
           ),

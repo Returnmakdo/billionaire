@@ -57,7 +57,7 @@ class _CategoryShareState extends State<CategoryShare> {
               TextSpan(
                 children: [
                   TextSpan(text: smartWon(total)),
-                  const TextSpan(
+                  TextSpan(
                     text: '원',
                     style: TextStyle(
                       fontSize: 13,
@@ -67,7 +67,7 @@ class _CategoryShareState extends State<CategoryShare> {
                   ),
                 ],
               ),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: AppColors.text,
@@ -84,7 +84,7 @@ class _CategoryShareState extends State<CategoryShare> {
         ),
         const SizedBox(height: 14),
         if (spent.isEmpty)
-          const SizedBox(
+          SizedBox(
             height: 80,
             child: Center(
               child: Text('이번 달 지출이 없어요',
@@ -223,7 +223,7 @@ class _ShareRow extends StatelessWidget {
                   child: Text(label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13.5,
                         color: AppColors.text,
                         fontWeight: FontWeight.w600,
@@ -231,18 +231,18 @@ class _ShareRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(smartWon(amount),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13.5,
                       color: AppColors.text,
                       fontWeight: FontWeight.w700,
                       fontFeatures: [FontFeature.tabularFigures()],
                     )),
-                const Text('원',
+                Text('원',
                     style: TextStyle(
                         fontSize: 11, color: AppColors.text3)),
                 if (onTap != null) ...[
                   const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right,
+                  Icon(Icons.chevron_right,
                       size: 16, color: AppColors.text4),
                 ],
               ],
@@ -268,7 +268,7 @@ class _ShareRow extends StatelessWidget {
                   child: Text(
                     '${(pct * 100).round()}%',
                     textAlign: TextAlign.right,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11.5,
                       color: AppColors.text3,
                       fontWeight: FontWeight.w600,

@@ -36,7 +36,7 @@ class BudgetCard extends StatelessWidget {
               Expanded(
                 child: Text(major,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: AppColors.text,
@@ -69,7 +69,7 @@ class BudgetCard extends StatelessWidget {
     final budgetText = noBudget ? '예산 미설정' : '/ ${won(budget)}원';
     return RichText(
       text: TextSpan(
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13.5,
           color: AppColors.text2,
           fontFeatures: [FontFeature.tabularFigures()],
@@ -77,7 +77,7 @@ class BudgetCard extends StatelessWidget {
         children: [
           TextSpan(
               text: spentText,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.text,
                 fontWeight: FontWeight.w700,
               )),

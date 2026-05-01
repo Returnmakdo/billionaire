@@ -133,7 +133,7 @@ class _SpendingInsightsScreenState extends State<SpendingInsightsScreen> {
         return AppCard(
           child: Text(
             errorMessage(_error!),
-            style: const TextStyle(color: AppColors.danger),
+            style: TextStyle(color: AppColors.danger),
           ),
         );
       }

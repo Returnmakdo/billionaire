@@ -14,6 +14,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/fixed_expenses_screen.dart';
 import 'screens/help_screen.dart';
 import 'screens/import_screen.dart';
+import 'screens/theme_settings_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/reset_password_screen.dart';
@@ -126,6 +127,10 @@ class _BudgetAppState extends State<BudgetApp> {
               path: 'import',
               builder: (_, _) => const ImportScreen(),
             ),
+            GoRoute(
+              path: 'theme',
+              builder: (_, _) => const ThemeSettingsScreen(),
+            ),
           ],
         ),
         GoRoute(
@@ -191,21 +196,30 @@ class _BudgetAppState extends State<BudgetApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: '가계부',
-      debugShowCheckedModeBanner: false,
-      theme: buildTheme(),
-      routerConfig: _router,
-      locale: const Locale('ko', 'KR'),
-      supportedLocales: const [
-        Locale('ko', 'KR'),
-        Locale('en', 'US'),
-      ],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AuthService.themeMode,
+      builder: (context, mode, _) {
+        // 화면 코드의 AppColors.* getter가 정확한 색을 내려고 미리 동기화.
+        AppColors.update(resolveBrightness(mode));
+        return MaterialApp.router(
+          title: '가계부',
+          debugShowCheckedModeBanner: false,
+          theme: buildLightTheme(),
+          darkTheme: buildDarkTheme(),
+          themeMode: mode,
+          routerConfig: _router,
+          locale: const Locale('ko', 'KR'),
+          supportedLocales: const [
+            Locale('ko', 'KR'),
+            Locale('en', 'US'),
+          ],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+        );
+      },
     );
   }
 }

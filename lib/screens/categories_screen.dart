@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../api/api.dart';
 import '../api/models.dart';
@@ -87,14 +86,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('취소',
+            child: Text('취소',
                 style: TextStyle(color: AppColors.text2)),
           ),
           TextButton(
             onPressed: () =>
                 Navigator.of(ctx).pop(ctrl.text.trim()),
             child: Text(confirmText,
-                style: const TextStyle(
+                style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600)),
           ),
@@ -211,10 +210,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.text2),
+          icon: Icon(Icons.arrow_back, color: AppColors.text2),
           onPressed: () => goBackOr(context, '/settings'),
         ),
-        title: const Text(
+        title: Text(
           '카테고리 관리',
           style: TextStyle(
             fontSize: 17,
@@ -373,7 +372,7 @@ class _MajorCardState extends State<_MajorCard> {
                         focusNode: _focus,
                         onSubmitted: (_) => _commit(),
                         onTapOutside: (_) => _commit(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: AppColors.text,
@@ -394,7 +393,7 @@ class _MajorCardState extends State<_MajorCard> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 4, vertical: 2),
                           child: Text(widget.major,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.text,
@@ -406,7 +405,7 @@ class _MajorCardState extends State<_MajorCard> {
                 onPressed: widget.onDelete,
                 tooltip: '삭제',
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.delete_outline,
+                icon: Icon(Icons.delete_outline,
                     color: AppColors.text3, size: 20),
               ),
             ],
@@ -432,7 +431,7 @@ class _MajorCardState extends State<_MajorCard> {
             label: const Text('태그 추가'),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.primaryWeak, width: 1.5),
+              side: BorderSide(color: AppColors.primaryWeak, width: 1.5),
               minimumSize: const Size(0, 36),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -472,7 +471,7 @@ class _SubChip extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 6, 8, 6),
               child: Text(sub.sub,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     color: AppColors.primaryStrong,
                     fontWeight: FontWeight.w600,
@@ -485,7 +484,7 @@ class _SubChip extends StatelessWidget {
               topRight: Radius.circular(99),
               bottomRight: Radius.circular(99),
             ),
-            child: const Padding(
+            child: Padding(
               padding: EdgeInsets.fromLTRB(2, 6, 8, 6),
               child: Icon(Icons.close,
                   size: 14, color: AppColors.primary),

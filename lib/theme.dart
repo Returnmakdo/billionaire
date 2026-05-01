@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
-// 웹 styles.css의 CSS 변수와 1:1 매핑
-class AppColors {
+/// 라이트 모드 색상 (토스 톤). 다크 토글되면 [AppColors.x] getter가
+/// dark 색을 반환하므로 화면 코드는 그대로 [AppColors.text] 사용 가능.
+/// 다만 const 표현식 안에서는 컴파일 타임 평가라 dark 적용 안 됨 — 호출자가
+/// const 제거 필요.
+class _Light {
   static const bg = Color(0xFFF4F6F8);
   static const surface = Color(0xFFFFFFFF);
   static const surface2 = Color(0xFFF7F9FB);
@@ -19,6 +23,54 @@ class AppColors {
   static const warning = Color(0xFFF59E0B);
 }
 
+class _Dark {
+  static const bg = Color(0xFF111316);
+  static const surface = Color(0xFF1A1D22);
+  static const surface2 = Color(0xFF22262D);
+  static const text = Color(0xFFE6E8EA);
+  static const text2 = Color(0xFFB0B8C1);
+  static const text3 = Color(0xFF8B95A1);
+  static const text4 = Color(0xFF606770);
+  static const line = Color(0xFF2F343A);
+  static const line2 = Color(0xFF252A30);
+  static const primary = Color(0xFF4D8FF7);
+  static const primaryWeak = Color(0xFF1F2C44);
+  static const primaryStrong = Color(0xFF6FAEFF);
+  static const success = Color(0xFF2BC986);
+  static const danger = Color(0xFFFF5762);
+  static const warning = Color(0xFFFBA62C);
+}
+
+/// 화면 코드에서 직접 참조 (예: `AppColors.text`). 현재 활성 ThemeMode에 따라
+/// 동적으로 light/dark 색을 반환. const TextStyle/Container 안에서는 작동 안
+/// 하므로 호출자가 const 제거 필요.
+class AppColors {
+  static bool _isDark = false;
+
+  /// MaterialApp이 build할 때 매번 호출해서 현재 brightness 동기화.
+  static void update(Brightness b) {
+    _isDark = b == Brightness.dark;
+  }
+
+  static Color get bg => _isDark ? _Dark.bg : _Light.bg;
+  static Color get surface => _isDark ? _Dark.surface : _Light.surface;
+  static Color get surface2 => _isDark ? _Dark.surface2 : _Light.surface2;
+  static Color get text => _isDark ? _Dark.text : _Light.text;
+  static Color get text2 => _isDark ? _Dark.text2 : _Light.text2;
+  static Color get text3 => _isDark ? _Dark.text3 : _Light.text3;
+  static Color get text4 => _isDark ? _Dark.text4 : _Light.text4;
+  static Color get line => _isDark ? _Dark.line : _Light.line;
+  static Color get line2 => _isDark ? _Dark.line2 : _Light.line2;
+  static Color get primary => _isDark ? _Dark.primary : _Light.primary;
+  static Color get primaryWeak =>
+      _isDark ? _Dark.primaryWeak : _Light.primaryWeak;
+  static Color get primaryStrong =>
+      _isDark ? _Dark.primaryStrong : _Light.primaryStrong;
+  static Color get success => _isDark ? _Dark.success : _Light.success;
+  static Color get danger => _isDark ? _Dark.danger : _Light.danger;
+  static Color get warning => _isDark ? _Dark.warning : _Light.warning;
+}
+
 class AppRadius {
   static const sm = 10.0;
   static const md = 14.0;
@@ -26,56 +78,79 @@ class AppRadius {
   static const xl = 22.0;
 }
 
-ThemeData buildTheme() {
+ThemeData buildLightTheme() => _build(brightness: Brightness.light);
+ThemeData buildDarkTheme() => _build(brightness: Brightness.dark);
+
+ThemeData _build({required Brightness brightness}) {
+  // ThemeData 만들기 직전에 AppColors._isDark 동기화. MaterialApp이 라이트/다크
+  // ThemeData 둘 다 build하므로 마지막 호출 기준이 정확하지 않을 수 있어,
+  // 첫 frame 후에도 한번 더 보정 (themeMode에 따라).
+  AppColors.update(brightness);
+
   const fontFamily = 'Pretendard';
+  final dark = brightness == Brightness.dark;
+  final bg = dark ? _Dark.bg : _Light.bg;
+  final surface = dark ? _Dark.surface : _Light.surface;
+  final surface2 = dark ? _Dark.surface2 : _Light.surface2;
+  final text = dark ? _Dark.text : _Light.text;
+  final text2 = dark ? _Dark.text2 : _Light.text2;
+  final line = dark ? _Dark.line : _Light.line;
+  final primary = dark ? _Dark.primary : _Light.primary;
+  final danger = dark ? _Dark.danger : _Light.danger;
+
   return ThemeData(
     useMaterial3: true,
+    brightness: brightness,
     fontFamily: fontFamily,
-    scaffoldBackgroundColor: AppColors.bg,
-    colorScheme: const ColorScheme.light(
-      primary: AppColors.primary,
+    scaffoldBackgroundColor: bg,
+    colorScheme: ColorScheme(
+      brightness: brightness,
+      primary: primary,
       onPrimary: Colors.white,
-      surface: AppColors.surface,
-      onSurface: AppColors.text,
-      error: AppColors.danger,
+      secondary: primary,
+      onSecondary: Colors.white,
+      surface: surface,
+      onSurface: text,
+      error: danger,
+      onError: Colors.white,
     ),
-    textTheme: const TextTheme(
-      headlineLarge: TextStyle(fontWeight: FontWeight.w700, color: AppColors.text),
-      headlineMedium: TextStyle(fontWeight: FontWeight.w700, color: AppColors.text),
-      titleLarge: TextStyle(fontWeight: FontWeight.w700, color: AppColors.text),
-      titleMedium: TextStyle(fontWeight: FontWeight.w600, color: AppColors.text),
-      bodyLarge: TextStyle(color: AppColors.text),
-      bodyMedium: TextStyle(color: AppColors.text2),
-      labelLarge: TextStyle(fontWeight: FontWeight.w600),
+    textTheme: TextTheme(
+      headlineLarge: TextStyle(fontWeight: FontWeight.w700, color: text),
+      headlineMedium: TextStyle(fontWeight: FontWeight.w700, color: text),
+      titleLarge: TextStyle(fontWeight: FontWeight.w700, color: text),
+      titleMedium: TextStyle(fontWeight: FontWeight.w600, color: text),
+      bodyLarge: TextStyle(color: text),
+      bodyMedium: TextStyle(color: text2),
+      labelLarge: const TextStyle(fontWeight: FontWeight.w600),
     ).apply(fontFamily: fontFamily),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.surface2,
+      fillColor: surface2,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        borderSide: const BorderSide(color: AppColors.line),
+        borderSide: BorderSide(color: line),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        borderSide: const BorderSide(color: AppColors.line),
+        borderSide: BorderSide(color: line),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        borderSide: BorderSide(color: primary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        borderSide: const BorderSide(color: AppColors.danger, width: 1.2),
+        borderSide: BorderSide(color: danger, width: 1.2),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
+        borderSide: BorderSide(color: danger, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.primary,
+        backgroundColor: primary,
         foregroundColor: Colors.white,
         minimumSize: const Size(double.infinity, 48),
         shape: RoundedRectangleBorder(
@@ -88,10 +163,20 @@ ThemeData buildTheme() {
         ),
       ),
     ),
-    snackBarTheme: const SnackBarThemeData(
+    snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      backgroundColor: AppColors.text,
-      contentTextStyle: TextStyle(color: Colors.white),
+      backgroundColor: text,
+      contentTextStyle:
+          TextStyle(color: dark ? _Dark.bg : Colors.white),
     ),
   );
+}
+
+/// MaterialApp의 themeMode 결정 시 호출 — 시스템 기준일 때 platformBrightness
+/// 따라 AppColors._isDark 동기화. main에서 ValueListenableBuilder가 mode
+/// 변경 시 build 호출하므로 이 시점에 sync.
+Brightness resolveBrightness(ThemeMode mode) {
+  if (mode == ThemeMode.dark) return Brightness.dark;
+  if (mode == ThemeMode.light) return Brightness.light;
+  return SchedulerBinding.instance.platformDispatcher.platformBrightness;
 }

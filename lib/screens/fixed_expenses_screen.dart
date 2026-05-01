@@ -209,7 +209,7 @@ class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('활성 ${active.length}개의 월 합계',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12.5,
                                 color: AppColors.text3,
                                 fontWeight: FontWeight.w500,
@@ -221,7 +221,7 @@ class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(won(totalActive),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.text,
@@ -231,7 +231,7 @@ class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
                                     ],
                                   )),
                               const SizedBox(width: 4),
-                              const Text('원',
+                              Text('원',
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: AppColors.text3,
@@ -256,7 +256,7 @@ class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
                             ),
                           ),
                         if (inactive.isNotEmpty) ...[
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.fromLTRB(4, 12, 4, 6),
                             child: Align(
                               alignment: Alignment.centerLeft,
@@ -321,7 +321,7 @@ class _FixedRow extends StatelessWidget {
                       child: Text(item.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14.5,
                             fontWeight: FontWeight.w600,
                             color: AppColors.text,
@@ -329,7 +329,7 @@ class _FixedRow extends StatelessWidget {
                     ),
                     if (!item.active) ...[
                       const SizedBox(width: 6),
-                      const Pill(
+                      Pill(
                           label: '비활성',
                           color: AppColors.text3,
                           bg: AppColors.surface2),
@@ -340,7 +340,7 @@ class _FixedRow extends StatelessWidget {
                 Text(meta.toString(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       color: AppColors.text3,
                     )),
@@ -349,13 +349,13 @@ class _FixedRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text('${won(item.amount)}원',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w700,
                 color: AppColors.text,
                 fontFeatures: [FontFeature.tabularFigures()],
               )),
-          const Icon(Icons.chevron_right,
+          Icon(Icons.chevron_right,
               color: AppColors.text4, size: 20),
         ],
       ),
@@ -491,7 +491,7 @@ class _FixedModalState extends State<_FixedModal> {
       padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
       child: Container(
         constraints: BoxConstraints(maxHeight: mq.size.height * 0.92),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius:
               BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
@@ -518,7 +518,7 @@ class _FixedModalState extends State<_FixedModal> {
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, color: AppColors.text3),
+                    icon: Icon(Icons.close, color: AppColors.text3),
                   ),
                 ],
               ),
@@ -625,7 +625,7 @@ class _FixedModalState extends State<_FixedModal> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Text('활성',
+                                      Text('활성',
                                           style: TextStyle(
                                               fontWeight: FontWeight.w600,
                                               color: AppColors.text)),
@@ -650,7 +650,7 @@ class _FixedModalState extends State<_FixedModal> {
                                             .symmetric(
                                             horizontal: 10,
                                             vertical: 8),
-                                        child: const Icon(
+                                        child: Icon(
                                             Icons.info_outline,
                                             size: 16,
                                             color: AppColors.text3),
@@ -658,7 +658,7 @@ class _FixedModalState extends State<_FixedModal> {
                                     ],
                                   ),
                                   const SizedBox(height: 2),
-                                  const Text('꺼두면 일괄 등록에서 제외돼요',
+                                  Text('꺼두면 일괄 등록에서 제외돼요',
                                       style: TextStyle(
                                           fontSize: 12,
                                           color: AppColors.text3)),
@@ -672,7 +672,7 @@ class _FixedModalState extends State<_FixedModal> {
                     if (_editing) ...[
                       const SizedBox(height: 14),
                       Container(
-                        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                        padding: EdgeInsets.fromLTRB(12, 10, 12, 10),
                         decoration: BoxDecoration(
                           color: AppColors.primaryWeak,
                           borderRadius:
@@ -680,7 +680,7 @@ class _FixedModalState extends State<_FixedModal> {
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Icon(Icons.info_outline,
                                 size: 16, color: AppColors.primaryStrong),
                             SizedBox(width: 8),
@@ -698,7 +698,7 @@ class _FixedModalState extends State<_FixedModal> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Divider(color: AppColors.line2, height: 1),
+                      Divider(color: AppColors.line2, height: 1),
                       const SizedBox(height: 8),
                       TextButton(
                         onPressed: _delete,
@@ -720,7 +720,7 @@ class _FixedModalState extends State<_FixedModal> {
             Container(
               padding: EdgeInsets.fromLTRB(
                   20, 12, 20, 12 + mq.padding.bottom * 0.4),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border:
                     Border(top: BorderSide(color: AppColors.line2)),
               ),

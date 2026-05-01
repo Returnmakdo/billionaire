@@ -205,7 +205,7 @@ class _SlideView extends StatelessWidget {
           Text(
             slide.title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Pretendard',
               fontSize: 22,
               fontWeight: FontWeight.w700,
@@ -218,7 +218,7 @@ class _SlideView extends StatelessWidget {
           Text(
             slide.body,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Pretendard',
               fontSize: 13.5,
               color: AppColors.text2,

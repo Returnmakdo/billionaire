@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
-import 'package:go_router/go_router.dart';
 
 import '../api/api.dart';
 import '../api/models.dart';
@@ -116,23 +115,23 @@ class _ImportScreenState extends State<ImportScreen> {
         final fields = _parseCsvLine(dataLines[i]);
         // 필수 컬럼 3개 (날짜/금액/카테고리)
         if (fields.length < 3) {
-          errors.add('${lineNo}행: 컬럼이 부족해요 (날짜·금액·카테고리 필수)');
+          errors.add('$lineNo행: 컬럼이 부족해요 (날짜·금액·카테고리 필수)');
           continue;
         }
         final date = _normalizeDate(fields[0]);
         if (date == null) {
-          errors.add('${lineNo}행: 날짜 형식이 잘못됐어요 (예: 2026-05-01)');
+          errors.add('$lineNo행: 날짜 형식이 잘못됐어요 (예: 2026-05-01)');
           continue;
         }
         final amountStr = _get(fields, 1);
         final amount = _parseAmount(amountStr);
         if (amount == null || amount <= 0) {
-          errors.add('${lineNo}행: 금액이 잘못됐어요 ("$amountStr")');
+          errors.add('$lineNo행: 금액이 잘못됐어요 ("$amountStr")');
           continue;
         }
         final major = _get(fields, 2).trim();
         if (major.isEmpty) {
-          errors.add('${lineNo}행: 카테고리는 필수예요');
+          errors.add('$lineNo행: 카테고리는 필수예요');
           continue;
         }
         final merchant = _emptyToNull(_get(fields, 3));
@@ -156,7 +155,7 @@ class _ImportScreenState extends State<ImportScreen> {
           isFixed: isFixed,
         ));
       } catch (e) {
-        errors.add('${lineNo}행: $e');
+        errors.add('$lineNo행: $e');
       }
     }
     return _ParseResult(rows: rows, errors: errors);
@@ -250,10 +249,10 @@ class _ImportScreenState extends State<ImportScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.text2),
+          icon: Icon(Icons.arrow_back, color: AppColors.text2),
           onPressed: () => goBackOr(context, '/settings'),
         ),
-        title: const Text(
+        title: Text(
           '데이터 가져오기',
           style: TextStyle(
             fontSize: 17,
@@ -282,7 +281,7 @@ class _ImportScreenState extends State<ImportScreen> {
                 label: Text(!isMobileEnv() ? '템플릿 받기' : '템플릿 공유'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
-                  side: const BorderSide(
+                  side: BorderSide(
                       color: AppColors.primaryWeak, width: 1.5),
                   minimumSize: const Size(0, 40),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -338,7 +337,7 @@ class _ImportScreenState extends State<ImportScreen> {
                 width: 24,
                 height: 24,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.primary,
                   shape: BoxShape.circle,
                 ),
@@ -354,7 +353,7 @@ class _ImportScreenState extends State<ImportScreen> {
               const SizedBox(width: 10),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: AppColors.text,
@@ -365,7 +364,7 @@ class _ImportScreenState extends State<ImportScreen> {
           const SizedBox(height: 8),
           Text(
             body,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               color: AppColors.text2,
               height: 1.55,
@@ -390,13 +389,13 @@ class _ImportScreenState extends State<ImportScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.description_outlined,
+              Icon(Icons.description_outlined,
                   size: 18, color: AppColors.text2),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   _fileName ?? '미리보기',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                     color: AppColors.text,
@@ -409,11 +408,11 @@ class _ImportScreenState extends State<ImportScreen> {
           const SizedBox(height: 10),
           Text(
             '읽은 거래 ${rows.length}건${hasErrors ? ' · 건너뛴 행 ${_errors.length}개' : ''}',
-            style: const TextStyle(fontSize: 12.5, color: AppColors.text3),
+            style: TextStyle(fontSize: 12.5, color: AppColors.text3),
           ),
           if (rows.isNotEmpty) ...[
             const SizedBox(height: 12),
-            const Divider(color: AppColors.line2, height: 1),
+            Divider(color: AppColors.line2, height: 1),
             const SizedBox(height: 8),
             // 첫 5건만 미리보기
             for (final r in rows.take(5)) _previewRow(r),
@@ -421,7 +420,7 @@ class _ImportScreenState extends State<ImportScreen> {
               const SizedBox(height: 4),
               Text(
                 '… 외 ${rows.length - 5}건',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 12, color: AppColors.text3),
               ),
             ],
@@ -442,7 +441,7 @@ class _ImportScreenState extends State<ImportScreen> {
                       padding: const EdgeInsets.only(bottom: 2),
                       child: Text(
                         '· $e',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: AppColors.danger,
                           height: 1.5,
@@ -452,7 +451,7 @@ class _ImportScreenState extends State<ImportScreen> {
                   if (_errors.length > 5)
                     Text(
                       '… 외 ${_errors.length - 5}건',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 12, color: AppColors.danger),
                     ),
                 ],
@@ -485,7 +484,7 @@ class _ImportScreenState extends State<ImportScreen> {
         children: [
           Text(
             r.date,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               color: AppColors.text3,
               fontFeatures: [FontFeature.tabularFigures()],
@@ -497,7 +496,7 @@ class _ImportScreenState extends State<ImportScreen> {
               r.merchant ?? '(가맹점 없음)',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 color: AppColors.text,
                 fontWeight: FontWeight.w500,
@@ -506,7 +505,7 @@ class _ImportScreenState extends State<ImportScreen> {
           ),
           Text(
             '${won(r.amount)}원',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.text,
@@ -520,7 +519,7 @@ class _ImportScreenState extends State<ImportScreen> {
 
   Widget _webUrlCard() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      padding: EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
         color: AppColors.primaryWeak,
         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -529,7 +528,7 @@ class _ImportScreenState extends State<ImportScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
+            children: [
               Icon(Icons.lightbulb_outline,
                   size: 16, color: AppColors.primaryStrong),
               SizedBox(width: 6),
@@ -544,7 +543,7 @@ class _ImportScreenState extends State<ImportScreen> {
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             '모바일에서도 가능하지만, 엑셀로 거래 정리하는 건 PC에서 훨씬 편해요. 아래 URL을 복사해서 PC 브라우저에 붙여넣으세요.',
             style: TextStyle(
               fontSize: 12,
@@ -579,12 +578,12 @@ class _ImportScreenState extends State<ImportScreen> {
 
   Widget _formatGuide() {
     return AppCard(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      padding: EdgeInsets.fromLTRB(18, 16, 18, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
+            children: [
               Icon(Icons.info_outline,
                   size: 16, color: AppColors.primaryStrong),
               SizedBox(width: 8),
@@ -599,7 +598,7 @@ class _ImportScreenState extends State<ImportScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             '필수',
             style: TextStyle(
               fontSize: 11.5,
@@ -613,7 +612,7 @@ class _ImportScreenState extends State<ImportScreen> {
           _guideRow('금액', '숫자, 콤마/원 OK', required: true),
           _guideRow('카테고리', '새 카테고리면 자동 추가됨', required: true),
           const SizedBox(height: 14),
-          const Text(
+          Text(
             '선택',
             style: TextStyle(
               fontSize: 11.5,
@@ -635,7 +634,7 @@ class _ImportScreenState extends State<ImportScreen> {
               color: AppColors.surface2,
               borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
-            child: const Text(
+            child: Text(
               '카드사 명세서 → 엑셀 → 템플릿 양식대로 정리 → 저장(CSV UTF-8) → 가져오기',
               style: TextStyle(
                 fontSize: 12,
@@ -663,7 +662,7 @@ class _ImportScreenState extends State<ImportScreen> {
                 color: const Color(0xFFFFF1F2),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text(
+              child: Text(
                 '필수',
                 style: TextStyle(
                   fontSize: 10,
@@ -685,7 +684,7 @@ class _ImportScreenState extends State<ImportScreen> {
           Expanded(
             child: Text(
               desc,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12.5,
                 color: AppColors.text3,
                 height: 1.5,

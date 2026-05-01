@@ -128,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(errorMessage(_error!),
-                        style: const TextStyle(color: AppColors.danger)),
+                        style: TextStyle(color: AppColors.danger)),
                   ),
                 ),
               ]);

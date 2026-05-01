@@ -594,7 +594,7 @@ class _ImportScreenState extends State<ImportScreen> {
           const SizedBox(height: 6),
           _guideRow('날짜', 'YYYY-MM-DD (예: 2026-05-01)', required: true),
           _guideRow('금액', '숫자, 콤마/원 OK', required: true),
-          _guideRow('카테고리', '없으면 자동 등록', required: true),
+          _guideRow('카테고리', '새 카테고리면 자동 추가됨', required: true),
           const SizedBox(height: 14),
           const Text(
             '선택',
@@ -608,7 +608,7 @@ class _ImportScreenState extends State<ImportScreen> {
           const SizedBox(height: 6),
           _guideRow('가맹점', '거래처 이름'),
           _guideRow('카드/결제수단', '예: 신한카드'),
-          _guideRow('태그', '카테고리 하위, 자동 등록'),
+          _guideRow('태그', '카테고리 하위, 새 태그면 자동 추가됨'),
           _guideRow('메모', '자유 텍스트'),
           _guideRow('고정비', '"예" 또는 "아니오" (기본 아니오)'),
           const SizedBox(height: 12),

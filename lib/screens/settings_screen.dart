@@ -5,6 +5,7 @@ import '../api/api.dart';
 import '../theme.dart';
 import '../utils/csv_download_stub.dart'
     if (dart.library.html) '../utils/csv_download_web.dart';
+import '../utils/nav_back.dart';
 import '../widgets/common.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -24,9 +25,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final ts = DateTime.now();
       final stamp =
           '${ts.year}${ts.month.toString().padLeft(2, '0')}${ts.day.toString().padLeft(2, '0')}';
-      triggerCsvDownload(csv, '가계부_$stamp.csv');
+      final shared =
+          await triggerCsvDownload(csv, '가계부_$stamp.csv');
       if (!mounted) return;
-      showToast(context, 'CSV 파일을 다운로드했어요');
+      if (!shared) showToast(context, 'CSV 파일을 다운로드했어요');
     } catch (e) {
       if (!mounted) return;
       showToast(context, errorMessage(e), error: true);
@@ -45,7 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.text2),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: () => goBackOr(context, '/dashboard'),
         ),
         title: const Text(
           '설정',
@@ -66,19 +68,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.person_outline,
                 title: '계정 관리',
                 subtitle: '이름·비밀번호·회원 탈퇴',
-                onTap: () => context.push('/settings/account'),
+                onTap: () => context.go('/settings/account'),
               ),
               _MenuItem(
                 icon: Icons.category_outlined,
                 title: '카테고리 관리',
                 subtitle: '카테고리·태그 추가, 수정',
-                onTap: () => context.push('/settings/categories'),
+                onTap: () => context.go('/settings/categories'),
               ),
               _MenuItem(
                 icon: Icons.upload_file_outlined,
                 title: '데이터 가져오기',
                 subtitle: 'CSV로 거래 일괄 등록',
-                onTap: () => context.push('/settings/import'),
+                onTap: () => context.go('/settings/import'),
               ),
               _MenuItem(
                 icon: Icons.download_outlined,
@@ -97,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.help_outline,
                 title: '도움말',
                 subtitle: '소개 슬라이드 + 화면별 사용법',
-                onTap: () => context.push('/settings/help'),
+                onTap: () => context.go('/settings/help'),
               ),
             ]),
           ],

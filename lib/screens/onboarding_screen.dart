@@ -59,7 +59,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     if (!mounted) return;
     if (widget.fromHelp) {
-      context.pop();
+      context.go('/settings/help');
     } else {
       context.go('/dashboard');
     }

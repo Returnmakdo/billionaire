@@ -162,6 +162,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_budgets',
         onPressed: (_saving || _data == null) ? null : _save,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

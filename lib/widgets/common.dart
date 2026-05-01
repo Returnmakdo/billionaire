@@ -207,7 +207,10 @@ class _LogoutButton extends StatelessWidget {
     );
     if (!context.mounted) return;
     if (action == 'settings') {
-      context.push('/settings');
+      // push 대신 go — GoRouter 14.x에서 push는 ImperativeRouteMatch라
+      // URL bar가 갱신 안 되는 케이스가 있어서 강제 교체.
+      // 뒤로가기는 브라우저 history(또는 navigator stack)로 처리.
+      context.go('/settings');
     } else if (action == 'logout') {
       final ok = await confirmDialog(
         context,

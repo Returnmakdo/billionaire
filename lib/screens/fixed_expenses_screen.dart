@@ -99,6 +99,7 @@ class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_fixed',
         onPressed: _data == null ? null : () => _openModal(_data!),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

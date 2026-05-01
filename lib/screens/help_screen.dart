@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../theme.dart';
+import '../utils/nav_back.dart';
 import '../widgets/common.dart';
 
 /// 설정 → 도움말. 화면별 사용법 카드 + 온보딩 다시 보기.
@@ -18,7 +19,7 @@ class HelpScreen extends StatelessWidget {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.text2),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: () => goBackOr(context, '/settings'),
         ),
         title: const Text(
           '도움말',
@@ -36,7 +37,7 @@ class HelpScreen extends StatelessWidget {
           children: [
             // 온보딩 다시 보기 — primaryWeak hero 카드.
             InkWell(
-              onTap: () => context.push('/onboarding?from=help'),
+              onTap: () => context.go('/onboarding?from=help'),
               borderRadius: BorderRadius.circular(AppRadius.md),
               child: Container(
                 padding: const EdgeInsets.all(18),

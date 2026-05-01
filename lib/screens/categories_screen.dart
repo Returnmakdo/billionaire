@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../api/api.dart';
 import '../api/models.dart';
 import '../theme.dart';
+import '../utils/nav_back.dart';
 import '../widgets/common.dart';
 import '../widgets/skeleton.dart';
 
@@ -210,7 +212,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.text2),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: () => goBackOr(context, '/settings'),
         ),
         title: const Text(
           '카테고리 관리',
@@ -223,6 +225,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         centerTitle: false,
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_categories',
         onPressed: _addMajor,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

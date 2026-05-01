@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show User;
 
 import '../auth.dart';
 import '../theme.dart';
+import '../utils/nav_back.dart';
 import '../widgets/common.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
@@ -140,7 +142,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.text2),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: () => goBackOr(context, '/settings'),
         ),
         title: const Text(
           '계정 관리',

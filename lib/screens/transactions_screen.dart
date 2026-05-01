@@ -377,6 +377,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_transactions',
         onPressed: () => _openModal(),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

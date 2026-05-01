@@ -4,12 +4,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:go_router/go_router.dart';
 
 import '../api/api.dart';
 import '../api/models.dart';
 import '../theme.dart';
 import '../utils/csv_download_stub.dart'
     if (dart.library.html) '../utils/csv_download_web.dart';
+import '../utils/nav_back.dart';
 import '../widgets/common.dart';
 import '../widgets/format.dart';
 
@@ -39,13 +41,14 @@ class _ImportScreenState extends State<ImportScreen> {
   static const _webUrl = 'https://billionaire-chi.vercel.app/settings/import';
 
   Future<void> _downloadTemplate() async {
-    // 웹: 브라우저 다운로드. 모바일: share dialog로 다른 앱에 전달.
-    await triggerCsvDownload(_csvTemplate, '가계부_가져오기_템플릿.csv');
-    if (!mounted) return;
-    showToast(
-      context,
-      kIsWeb ? '템플릿을 다운로드했어요' : '템플릿을 공유했어요',
+    // 반환 true = share dialog로 처리됨 (사용자가 시트 봤으니 toast 불필요).
+    // false = 브라우저 다운로드 (사용자에게 명시적으로 알림).
+    final shared = await triggerCsvDownload(
+      _csvTemplate,
+      '가계부_가져오기_템플릿.csv',
     );
+    if (!mounted) return;
+    if (!shared) showToast(context, '템플릿을 다운로드했어요');
   }
 
   Future<void> _copyWebUrl() async {
@@ -247,7 +250,7 @@ class _ImportScreenState extends State<ImportScreen> {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.text2),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: () => goBackOr(context, '/settings'),
         ),
         title: const Text(
           '데이터 가져오기',

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../api/api.dart';
 import '../api/models.dart';
 import '../auth.dart';
+import '../state/selected_month.dart';
 import '../theme.dart';
 import '../widgets/charts.dart';
 import '../widgets/common.dart';
@@ -23,9 +24,10 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  String _month = todayYm();
   _DashData? _data;
   Object? _error;
+
+  String get _month => SelectedMonth.value.value;
 
   late final Listenable _apiListenable = Listenable.merge([
     Api.instance.txVersion,
@@ -38,13 +40,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _apiListenable.addListener(_onApiChanged);
+    SelectedMonth.value.addListener(_onMonthChanged);
     _reload();
   }
 
   @override
   void dispose() {
     _apiListenable.removeListener(_onApiChanged);
+    SelectedMonth.value.removeListener(_onMonthChanged);
     super.dispose();
+  }
+
+  void _onMonthChanged() {
+    if (mounted) {
+      setState(() {});
+      _reload();
+    }
   }
 
   void _onApiChanged() {
@@ -78,8 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _shift(int delta) {
-    setState(() => _month = shiftYm(_month, delta));
-    _reload();
+    SelectedMonth.value.value = shiftYm(_month, delta);
   }
 
   Future<void> _pickMonth() async {
@@ -88,8 +98,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       initialYm: _month,
     );
     if (picked != null && picked != _month) {
-      setState(() => _month = picked);
-      _reload();
+      SelectedMonth.value.value = picked;
     }
   }
 

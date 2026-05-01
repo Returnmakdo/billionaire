@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../api/api.dart';
 import '../api/models.dart';
+import '../state/selected_month.dart';
 import '../theme.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/common.dart';
@@ -45,11 +46,12 @@ enum _TxSort {
 }
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
-  late String _month;
   String _major = '';
   String _sub = '';
   String _q = '';
   String _fixed = ''; // '', 'true', 'false'
+
+  String get _month => SelectedMonth.value.value;
   int? _minAmount;
   int? _maxAmount;
   _TxSort _sort = _TxSort.dateDesc;
@@ -75,22 +77,44 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   @override
   void initState() {
     super.initState();
-    _month = widget.initialMonth ?? todayYm();
+    if (widget.initialMonth != null && widget.initialMonth!.isNotEmpty) {
+      SelectedMonth.value.value = widget.initialMonth!;
+    }
     _major = widget.initialMajor ?? '';
     _sub = widget.initialSub ?? '';
     _q = widget.initialQ ?? '';
     _fixed = widget.initialFixed ?? '';
     _qCtrl = TextEditingController(text: _q);
     _apiListenable.addListener(_onApiChanged);
+    SelectedMonth.value.addListener(_onMonthChanged);
     ShellTabSignals.transactionsTab.addListener(_onTabPressed);
     _bootstrap();
   }
 
-  void _onTabPressed() {
-    // 탭 버튼 클릭으로 들어왔을 때 — 필터 모두 초기화. (대시보드 카드
-    // 클릭으로 들어오는 흐름은 didUpdateWidget이 따로 처리하니 영향 X)
-    if (mounted) _clearFilters();
+  void _onMonthChanged() {
+    if (mounted) {
+      setState(() {});
+      _reload();
+    }
   }
+
+  void _onTabPressed() {
+    // 탭 버튼 클릭으로 들어왔을 때 — 필터가 있으면 초기화. (필터 없으면
+    // reload 안 일으킴 — 불필요한 fetch 방지)
+    // (대시보드 카드 클릭으로 들어오는 흐름은 didUpdateWidget이 따로
+    // 처리하니 영향 X)
+    if (!mounted) return;
+    if (_hasFilter) _clearFilters();
+  }
+
+  bool get _hasFilter =>
+      _major.isNotEmpty ||
+      _sub.isNotEmpty ||
+      _q.isNotEmpty ||
+      _fixed.isNotEmpty ||
+      _minAmount != null ||
+      _maxAmount != null ||
+      _sort != _TxSort.dateDesc;
 
   @override
   void didUpdateWidget(TransactionsScreen oldWidget) {
@@ -103,10 +127,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         widget.initialQ != oldWidget.initialQ ||
         widget.initialFixed != oldWidget.initialFixed;
     if (!changed) return;
+    if (widget.initialMonth != null && widget.initialMonth!.isNotEmpty) {
+      SelectedMonth.value.value = widget.initialMonth!;
+    }
     setState(() {
-      if (widget.initialMonth != null && widget.initialMonth!.isNotEmpty) {
-        _month = widget.initialMonth!;
-      }
       _major = widget.initialMajor ?? '';
       _sub = widget.initialSub ?? '';
       _q = widget.initialQ ?? '';
@@ -120,6 +144,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   @override
   void dispose() {
     _apiListenable.removeListener(_onApiChanged);
+    SelectedMonth.value.removeListener(_onMonthChanged);
     ShellTabSignals.transactionsTab.removeListener(_onTabPressed);
     _qDebounce?.cancel();
     _qCtrl.dispose();
@@ -198,8 +223,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   void _shift(int delta) {
-    setState(() => _month = shiftYm(_month, delta));
-    _reload();
+    SelectedMonth.value.value = shiftYm(_month, delta);
   }
 
   Future<void> _pickMonth() async {
@@ -208,8 +232,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       initialYm: _month,
     );
     if (picked != null && picked != _month) {
-      setState(() => _month = picked);
-      _reload();
+      SelectedMonth.value.value = picked;
     }
   }
 
@@ -587,13 +610,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       );
     }
     final rows = _applyExtraFilters(_txs!);
-    final hasFilter = _major.isNotEmpty ||
-        _sub.isNotEmpty ||
-        _q.isNotEmpty ||
-        _fixed.isNotEmpty ||
-        _minAmount != null ||
-        _maxAmount != null ||
-        _sort != _TxSort.dateDesc;
+    final hasFilter = _hasFilter;
     final total = rows.fold<int>(0, (s, r) => s + r.amount);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),

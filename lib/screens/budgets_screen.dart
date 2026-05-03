@@ -9,6 +9,7 @@ import '../widgets/amount_field.dart';
 import '../widgets/common.dart';
 import '../widgets/format.dart';
 import '../widgets/skeleton.dart';
+import 'shell_screen.dart' show ShellTabSignals;
 
 class BudgetsScreen extends StatefulWidget {
   const BudgetsScreen({super.key});
@@ -25,6 +26,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   // 일치) reload 시 새 값으로 동기화하고, 건드렸으면 그대로 둠 (typing clobber 방지).
   final Map<String, int> _lastLoaded = {};
   bool _saving = false;
+  final ScrollController _scrollCtrl = ScrollController();
 
   late final Listenable _apiListenable = Listenable.merge([
     Api.instance.txVersion,
@@ -37,16 +39,28 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   void initState() {
     super.initState();
     _apiListenable.addListener(_onApiChanged);
+    ShellTabSignals.budgetsTab.addListener(_onTabPressed);
     _reload();
   }
 
   @override
   void dispose() {
     _apiListenable.removeListener(_onApiChanged);
+    ShellTabSignals.budgetsTab.removeListener(_onTabPressed);
     for (final c in _ctrls.values) {
       c.dispose();
     }
+    _scrollCtrl.dispose();
     super.dispose();
+  }
+
+  void _onTabPressed() {
+    if (!mounted || !_scrollCtrl.hasClients) return;
+    _scrollCtrl.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   void _onApiChanged() {
@@ -180,6 +194,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
             }
             final d = _data!;
             return ListView(
+              controller: _scrollCtrl,
               padding: const EdgeInsets.fromLTRB(0, 0, 0, 90),
               children: [
                 const PageHeader(

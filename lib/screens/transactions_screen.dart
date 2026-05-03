@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../api/api.dart';
 import '../api/models.dart';
@@ -62,6 +63,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   Set<String> _recurringKeys = const {};
   List<Tx>? _txs;
   Object? _txError;
+  bool _isFirstUser = false;
+  final ScrollController _scrollCtrl = ScrollController();
 
   Timer? _qDebounce;
   late final TextEditingController _qCtrl;
@@ -99,12 +102,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   void _onTabPressed() {
-    // 탭 버튼 클릭으로 들어왔을 때 — 필터가 있으면 초기화. (필터 없으면
-    // reload 안 일으킴 — 불필요한 fetch 방지)
-    // (대시보드 카드 클릭으로 들어오는 흐름은 didUpdateWidget이 따로
-    // 처리하니 영향 X)
-    if (!mounted) return;
-    if (_hasFilter) _clearFilters();
+    // 같은 탭을 다시 누른 경우 — 스크롤만 상단으로. 필터는 보존.
+    if (!mounted || !_scrollCtrl.hasClients) return;
+    _scrollCtrl.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   bool get _hasFilter =>
@@ -148,6 +152,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     ShellTabSignals.transactionsTab.removeListener(_onTabPressed);
     _qDebounce?.cancel();
     _qCtrl.dispose();
+    _scrollCtrl.dispose();
     super.dispose();
   }
 
@@ -177,11 +182,16 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             if (f.active) '${f.name}|${f.major}',
         };
       } catch (_) {/* 무시 */}
+      bool firstUser = false;
+      try {
+        firstUser = !(await Api.instance.hasAnyTransactions());
+      } catch (_) {/* 무시 — 노출 안 함 */}
       if (!mounted) return;
       setState(() {
         _cats = cats;
         _suggestions = sug;
         _recurringKeys = recurring;
+        _isFirstUser = firstUser;
       });
       _reload();
     } catch (e) {
@@ -393,6 +403,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   await _reload();
                 },
                 child: ListView(
+                  controller: _scrollCtrl,
                   padding: const EdgeInsets.fromLTRB(0, 0, 0, 90),
                   children: [
                     PageHeader(
@@ -651,8 +662,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   : Icons.receipt_long_outlined,
               title: hasFilter
                   ? '조건에 맞는 거래가 없어요'
-                  : '이번 달에 등록된 거래가 없어요',
+                  : (_isFirstUser
+                      ? '아직 등록된 거래가 없어요'
+                      : '이번 달에 등록된 거래가 없어요'),
               body: '오른쪽 아래 + 추가 버튼으로 거래를 등록할 수 있어요.',
+              secondaryActionLabel:
+                  (!hasFilter && _isFirstUser) ? '도움말 보기' : null,
+              onSecondaryAction: (!hasFilter && _isFirstUser)
+                  ? () => context.go('/settings/help')
+                  : null,
             )
           else
             AppCard(

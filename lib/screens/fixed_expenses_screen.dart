@@ -10,6 +10,7 @@ import '../widgets/category_color.dart';
 import '../widgets/common.dart';
 import '../widgets/format.dart';
 import '../widgets/skeleton.dart';
+import 'shell_screen.dart' show ShellTabSignals;
 
 class FixedExpensesScreen extends StatefulWidget {
   const FixedExpensesScreen({super.key});
@@ -21,6 +22,7 @@ class FixedExpensesScreen extends StatefulWidget {
 class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
   _FixedData? _data;
   Object? _error;
+  final ScrollController _scrollCtrl = ScrollController();
 
   late final Listenable _apiListenable = Listenable.merge([
     Api.instance.fixedVersion,
@@ -33,13 +35,25 @@ class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
   void initState() {
     super.initState();
     _apiListenable.addListener(_onApiChanged);
+    ShellTabSignals.fixedTab.addListener(_onTabPressed);
     _reload();
   }
 
   @override
   void dispose() {
     _apiListenable.removeListener(_onApiChanged);
+    ShellTabSignals.fixedTab.removeListener(_onTabPressed);
+    _scrollCtrl.dispose();
     super.dispose();
+  }
+
+  void _onTabPressed() {
+    if (!mounted || !_scrollCtrl.hasClients) return;
+    _scrollCtrl.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   void _onApiChanged() {
@@ -184,6 +198,7 @@ class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
                 active.fold<int>(0, (s, x) => s + x.amount);
 
             return ListView(
+              controller: _scrollCtrl,
               padding: const EdgeInsets.fromLTRB(0, 0, 0, 90),
               children: [
                 const PageHeader(
@@ -196,7 +211,7 @@ class _FixedExpensesScreenState extends State<FixedExpensesScreen> {
                     child: EmptyCard(
                       icon: Icons.repeat,
                       title: '등록된 정기지출이 없어요',
-                      body: '월세·구독·통신비를 등록하면 매달 자동으로 거래에 반영할 수 있어요.',
+                      body: '월세·구독·통신비를 등록해두면 거래내역에서 한 번에 거래로 추가할 수 있어요.',
                     ),
                   )
                 else ...[
@@ -632,7 +647,7 @@ class _FixedModalState extends State<_FixedModal> {
                                       const SizedBox(width: 4),
                                       Tooltip(
                                         message:
-                                            '거래내역의 "정기지출 일괄 등록"을 누르면 활성 정기지출이 그 달 거래로 자동 추가돼요.',
+                                            '거래내역의 "일괄 등록" 배너를 누르면 활성 정기지출만 그 달 거래로 한 번에 추가돼요.',
                                         triggerMode:
                                             TooltipTriggerMode.tap,
                                         showDuration:

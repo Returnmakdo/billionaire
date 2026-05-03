@@ -3,10 +3,29 @@ import 'package:go_router/go_router.dart';
 import '../theme.dart';
 
 /// 하단 탭 버튼 클릭을 화면에 신호로 전달.
-/// 거래내역 같은 화면이 이를 listen해서 필터 reset 등 처리.
+/// 같은 탭을 다시 누를 때만 bump되어, 화면이 listen해서 상단 스크롤·필터 reset 등 처리.
 class ShellTabSignals {
   ShellTabSignals._();
+  static final dashboardTab = ValueNotifier<int>(0);
   static final transactionsTab = ValueNotifier<int>(0);
+  static final budgetsTab = ValueNotifier<int>(0);
+  static final fixedTab = ValueNotifier<int>(0);
+  static final insightsTab = ValueNotifier<int>(0);
+
+  static void bump(int index) {
+    switch (index) {
+      case 0:
+        dashboardTab.value++;
+      case 1:
+        transactionsTab.value++;
+      case 2:
+        budgetsTab.value++;
+      case 3:
+        fixedTab.value++;
+      case 4:
+        insightsTab.value++;
+    }
+  }
 }
 
 class ShellScreen extends StatelessWidget {
@@ -33,7 +52,11 @@ class ShellScreen extends StatelessWidget {
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (i) {
-          if (i == 1) ShellTabSignals.transactionsTab.value++;
+          // 같은 탭을 다시 누를 때만 신호 bump — 화면이 listen해서 상단 스크롤·
+          // 필터 reset 등 처리.
+          if (i == navigationShell.currentIndex) {
+            ShellTabSignals.bump(i);
+          }
           navigationShell.goBranch(
             i,
             initialLocation: i == navigationShell.currentIndex,

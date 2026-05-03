@@ -15,6 +15,7 @@ import '../widgets/ko_date_picker.dart';
 import '../widgets/kpi_card.dart';
 import '../widgets/merchant_item.dart';
 import '../widgets/skeleton.dart';
+import 'shell_screen.dart' show ShellTabSignals;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -26,6 +27,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   _DashData? _data;
   Object? _error;
+  final ScrollController _scrollCtrl = ScrollController();
 
   String get _month => SelectedMonth.value.value;
 
@@ -42,6 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _apiListenable.addListener(_onApiChanged);
     SelectedMonth.value.addListener(_onMonthChanged);
     AuthService.userVersion.addListener(_onUserChanged);
+    ShellTabSignals.dashboardTab.addListener(_onTabPressed);
     _reload();
   }
 
@@ -50,7 +53,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _apiListenable.removeListener(_onApiChanged);
     SelectedMonth.value.removeListener(_onMonthChanged);
     AuthService.userVersion.removeListener(_onUserChanged);
+    ShellTabSignals.dashboardTab.removeListener(_onTabPressed);
+    _scrollCtrl.dispose();
     super.dispose();
+  }
+
+  void _onTabPressed() {
+    if (!mounted || !_scrollCtrl.hasClients) return;
+    _scrollCtrl.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   void _onMonthChanged() {
@@ -80,12 +94,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final results = await Future.wait([
         api.getDashboard(_month),
         api.getSubCategoryStats(month: _month, limit: 10, fixed: false),
+        api.hasAnyTransactions(),
       ]);
       if (!mounted) return;
       setState(() {
         _data = _DashData(
           data: results[0] as Dashboard,
           subs: results[1] as List<SubCategoryStat>,
+          isFirstUser: !(results[2] as bool),
         );
         _error = null;
       });
@@ -137,6 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
           final d = _data!;
           return ListView(
+            controller: _scrollCtrl,
             padding: const EdgeInsets.fromLTRB(0, 0, 0, 28),
             children: [
               PageHeader(
@@ -361,12 +378,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _subList(List<SubCategoryStat> rows) {
     if (rows.isEmpty) {
+      final firstUser = _data?.isFirstUser ?? false;
       return EmptyCard(
         icon: Icons.receipt_long_outlined,
-        title: '이번 달 거래가 없어요',
-        body: '거래를 추가하면 패턴을 짚어드릴게요.',
+        title: firstUser ? '첫 거래를 추가해보세요' : '이번 달 거래가 없어요',
+        body: firstUser
+            ? '거래를 추가하면 카테고리·태그별로 패턴을 짚어드릴게요.'
+            : '거래를 추가하면 패턴을 짚어드릴게요.',
         actionLabel: '거래 추가',
         onAction: () => context.go('/transactions'),
+        secondaryActionLabel: firstUser ? '도움말 보기' : null,
+        onSecondaryAction:
+            firstUser ? () => context.go('/settings/help') : null,
       );
     }
     return AppCard(
@@ -416,8 +439,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 class _DashData {
   final Dashboard data;
   final List<SubCategoryStat> subs;
+  final bool isFirstUser;
   const _DashData({
     required this.data,
     required this.subs,
+    required this.isFirstUser,
   });
 }

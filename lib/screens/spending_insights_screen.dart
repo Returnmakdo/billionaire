@@ -12,6 +12,7 @@ import '../widgets/format.dart';
 import '../widgets/ko_date_picker.dart';
 import '../widgets/skeleton.dart';
 import '../widgets/spending_insight_pages.dart';
+import 'shell_screen.dart' show ShellTabSignals;
 
 class SpendingInsightsScreen extends StatefulWidget {
   const SpendingInsightsScreen({super.key});
@@ -23,6 +24,7 @@ class SpendingInsightsScreen extends StatefulWidget {
 class _SpendingInsightsScreenState extends State<SpendingInsightsScreen> {
   InsightVisualData? _data;
   Object? _error;
+  final ScrollController _scrollCtrl = ScrollController();
 
   String get _month => SelectedMonth.value.value;
 
@@ -37,6 +39,7 @@ class _SpendingInsightsScreenState extends State<SpendingInsightsScreen> {
     super.initState();
     SelectedMonth.value.addListener(_onMonthChanged);
     _apiListenable.addListener(_onApiChanged);
+    ShellTabSignals.insightsTab.addListener(_onTabPressed);
     _reload();
   }
 
@@ -44,7 +47,18 @@ class _SpendingInsightsScreenState extends State<SpendingInsightsScreen> {
   void dispose() {
     SelectedMonth.value.removeListener(_onMonthChanged);
     _apiListenable.removeListener(_onApiChanged);
+    ShellTabSignals.insightsTab.removeListener(_onTabPressed);
+    _scrollCtrl.dispose();
     super.dispose();
+  }
+
+  void _onTabPressed() {
+    if (!mounted || !_scrollCtrl.hasClients) return;
+    _scrollCtrl.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   void _onMonthChanged() {
@@ -103,6 +117,7 @@ class _SpendingInsightsScreenState extends State<SpendingInsightsScreen> {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      controller: _scrollCtrl,
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 28),
       children: [
         PageHeader(

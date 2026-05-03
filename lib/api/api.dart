@@ -82,8 +82,23 @@ class Api {
     return all;
   }
 
+  /// 신규 가입 시 시드되는 기본 카테고리 (DB 트리거랑 동일).
+  /// wipeMyData가 신규 가입자와 동일한 상태로 만들기 위해 같은 목록 사용.
+  static const List<String> defaultMajors = [
+    '식비',
+    '교통',
+    '쇼핑',
+    '통신',
+    '구독',
+    '주거',
+    '의료',
+    '여가',
+    '경조사·회비',
+    '기타',
+  ];
+
   /// 본인 모든 데이터 wipe (transactions/fixed/categories/budgets/majors/ai_insights)
-  /// 후 '기타' 카테고리 + 빈 예산만 시드. 신규 사용자 상태로 리셋.
+  /// 후 기본 카테고리 시드. 신규 사용자 상태로 리셋.
   /// RLS로 본인 데이터만 삭제됨 (다른 사용자 데이터 안전).
   Future<void> wipeMyData() async {
     final userId = _uid();
@@ -93,16 +108,24 @@ class Api {
     await sb.from('budgets').delete().eq('user_id', userId);
     await sb.from('majors').delete().eq('user_id', userId);
     await sb.from('ai_insights').delete().eq('user_id', userId);
-    await sb.from('majors').insert({
-      'user_id': userId,
-      'major': '기타',
-      'sort_order': 0,
-    });
-    await sb.from('budgets').insert({
-      'user_id': userId,
-      'major': '기타',
-      'monthly_amount': 0,
-    });
+
+    final majorsPayload = <Map<String, dynamic>>[];
+    final budgetsPayload = <Map<String, dynamic>>[];
+    for (var i = 0; i < defaultMajors.length; i++) {
+      majorsPayload.add({
+        'user_id': userId,
+        'major': defaultMajors[i],
+        'sort_order': i,
+      });
+      budgetsPayload.add({
+        'user_id': userId,
+        'major': defaultMajors[i],
+        'monthly_amount': 0,
+      });
+    }
+    await sb.from('majors').insert(majorsPayload);
+    await sb.from('budgets').insert(budgetsPayload);
+
     invalidateAllCaches();
   }
 

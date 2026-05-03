@@ -81,6 +81,19 @@ class Api {
     return all;
   }
 
+  /// 전체 거래 0건 여부 (신규 사용자 판별용). 캐시 채워져 있으면 즉시 반환,
+  /// 없으면 head 1건 조회. 빈 상태 화면에서 도움말 진입점 노출 여부 결정에 사용.
+  Future<bool> hasAnyTransactions() async {
+    final cached = _txCache;
+    if (cached != null) return cached.isNotEmpty;
+    final row = await sb
+        .from('transactions')
+        .select('id')
+        .limit(1)
+        .maybeSingle();
+    return row != null;
+  }
+
   // ── transactions ─────────────────────────────────────────────
   Future<List<Tx>> listTransactions({
     String? month,

@@ -443,15 +443,22 @@ class EmptyCard extends StatelessWidget {
     this.icon,
     this.actionLabel,
     this.onAction,
+    this.secondaryActionLabel,
+    this.onSecondaryAction,
   });
   final String title;
   final String? body;
   final IconData? icon;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final String? secondaryActionLabel;
+  final VoidCallback? onSecondaryAction;
 
   @override
   Widget build(BuildContext context) {
+    final hasPrimary = actionLabel != null && onAction != null;
+    final hasSecondary =
+        secondaryActionLabel != null && onSecondaryAction != null;
     return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: Column(
@@ -487,19 +494,42 @@ class EmptyCard extends StatelessWidget {
                   height: 1.5,
                 )),
           ],
-          if (actionLabel != null && onAction != null) ...[
+          if (hasPrimary || hasSecondary) ...[
             const SizedBox(height: 16),
-            FilledButton(
-              onPressed: onAction,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(0, 40),
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                textStyle: const TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              child: Text(actionLabel!),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [
+                if (hasPrimary)
+                  FilledButton(
+                    onPressed: onAction,
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      textStyle: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    child: Text(actionLabel!),
+                  ),
+                if (hasSecondary)
+                  OutlinedButton(
+                    onPressed: onSecondaryAction,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.text2,
+                      side: BorderSide(color: AppColors.line),
+                      minimumSize: const Size(0, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      textStyle: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    child: Text(secondaryActionLabel!),
+                  ),
+              ],
             ),
           ],
         ],

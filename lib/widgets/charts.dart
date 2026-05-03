@@ -302,7 +302,8 @@ class MonthlyTrendBar extends StatelessWidget {
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
-              getTooltipColor: (_) => AppColors.text,
+              // 라이트/다크 어디서든 흰 글자가 잘 보이도록 진한 네이비 고정.
+              getTooltipColor: (_) => const Color(0xFF191F28),
               tooltipPadding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               tooltipMargin: 6,

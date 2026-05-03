@@ -380,16 +380,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (rows.isEmpty) {
       final firstUser = _data?.isFirstUser ?? false;
       return EmptyCard(
-        icon: Icons.receipt_long_outlined,
-        title: firstUser ? '첫 거래를 추가해보세요' : '이번 달 거래가 없어요',
+        icon: firstUser ? Icons.auto_awesome : Icons.receipt_long_outlined,
+        title: firstUser
+            ? '카드 이용내역으로 한 번에 시작해보세요'
+            : '이번 달 거래가 없어요',
         body: firstUser
-            ? '거래를 추가하면 카테고리·태그별로 패턴을 짚어드릴게요.'
+            ? 'AI가 카드 명세서를 정리해서 거래·카테고리까지 자동으로 등록해드려요.'
             : '거래를 추가하면 패턴을 짚어드릴게요.',
-        actionLabel: '거래 추가',
-        onAction: () => context.go('/transactions'),
-        secondaryActionLabel: firstUser ? '도움말 보기' : null,
+        actionLabel: firstUser ? '명세서로 한 번에 가져오기' : '거래 추가',
+        onAction: firstUser
+            ? () => context.go('/settings/import/ai')
+            : () => context.go('/transactions'),
+        secondaryActionLabel: firstUser ? '직접 입력' : null,
         onSecondaryAction:
-            firstUser ? () => context.go('/settings/help') : null,
+            firstUser ? () => context.go('/transactions') : null,
       );
     }
     return AppCard(
@@ -405,12 +409,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               subtitle: rows[i].major,
               amount: rows[i].total,
               count: rows[i].count,
-              onTap: () => context.go(
-                '/transactions'
-                '?month=${Uri.encodeComponent(_month)}'
-                '&major=${Uri.encodeComponent(rows[i].major)}'
-                '&sub=${Uri.encodeComponent(rows[i].sub)}',
-              ),
+              onTap: () {
+                // '(태그 없음)'은 placeholder — DB에 그런 sub_category 없음.
+                // sub_category IS NULL 필터로 보내야 거래내역에서 정확히 매칭.
+                final isNullSub = rows[i].sub == '(태그 없음)';
+                final base = '/transactions'
+                    '?month=${Uri.encodeComponent(_month)}'
+                    '&major=${Uri.encodeComponent(rows[i].major)}';
+                final url = isNullSub
+                    ? '$base&subnull=1'
+                    : '$base&sub=${Uri.encodeComponent(rows[i].sub)}';
+                context.go(url);
+              },
             ),
         ],
       ),

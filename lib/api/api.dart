@@ -1,3 +1,4 @@
+import 'dart:convert' show base64Encode;
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show ValueNotifier;
@@ -81,6 +82,30 @@ class Api {
     return all;
   }
 
+  /// 본인 모든 데이터 wipe (transactions/fixed/categories/budgets/majors/ai_insights)
+  /// 후 '기타' 카테고리 + 빈 예산만 시드. 신규 사용자 상태로 리셋.
+  /// RLS로 본인 데이터만 삭제됨 (다른 사용자 데이터 안전).
+  Future<void> wipeMyData() async {
+    final userId = _uid();
+    await sb.from('transactions').delete().eq('user_id', userId);
+    await sb.from('fixed_expenses').delete().eq('user_id', userId);
+    await sb.from('categories').delete().eq('user_id', userId);
+    await sb.from('budgets').delete().eq('user_id', userId);
+    await sb.from('majors').delete().eq('user_id', userId);
+    await sb.from('ai_insights').delete().eq('user_id', userId);
+    await sb.from('majors').insert({
+      'user_id': userId,
+      'major': '기타',
+      'sort_order': 0,
+    });
+    await sb.from('budgets').insert({
+      'user_id': userId,
+      'major': '기타',
+      'monthly_amount': 0,
+    });
+    invalidateAllCaches();
+  }
+
   /// 전체 거래 0건 여부 (신규 사용자 판별용). 캐시 채워져 있으면 즉시 반환,
   /// 없으면 head 1건 조회. 빈 상태 화면에서 도움말 진입점 노출 여부 결정에 사용.
   Future<bool> hasAnyTransactions() async {
@@ -99,6 +124,7 @@ class Api {
     String? month,
     String? major,
     String? sub,
+    bool subIsNull = false,
     String? q,
     bool? fixed,
   }) async {
@@ -107,7 +133,9 @@ class Api {
       query = query.gte('date', '$month-01').lte('date', '$month-31');
     }
     if (major != null) query = query.eq('major_category', major);
-    if (sub != null) query = query.eq('sub_category', sub);
+    if (!subIsNull && sub != null) {
+      query = query.eq('sub_category', sub);
+    }
     if (q != null && q.isNotEmpty) {
       query = query.or('merchant.ilike.%$q%,memo.ilike.%$q%');
     }
@@ -116,9 +144,18 @@ class Api {
     final rows = await query
         .order('date', ascending: false)
         .order('id', ascending: false);
-    return (rows as List)
+    var list = (rows as List)
         .map((e) => Tx.fromJson(e as Map<String, dynamic>))
         .toList();
+    // sub_category IS NULL 필터는 클라이언트에서 처리 (supabase의 .is/.filter
+    // 동작이 패키지 버전마다 달라 안정성 위해).
+    if (subIsNull) {
+      list = list
+          .where((t) =>
+              t.subCategory == null || t.subCategory!.trim().isEmpty)
+          .toList();
+    }
+    return list;
   }
 
   Future<Tx> createTransaction({
@@ -907,6 +944,105 @@ class Api {
       throw Exception(data['error'].toString());
     }
     throw Exception('분석 결과를 받을 수 없어요.');
+  }
+
+  // ── AI CSV import 보조 (Edge Function 프록시) ─────────────
+  /// .xls(BIFF)·.xlsx 파일을 서버에서 SheetJS로 변환. 한국 카드사 .xls(구버전)는
+  /// 클라이언트 excel 패키지가 못 읽어서 fallback으로 사용.
+  /// 큰 파일은 base64 변환에서 메모리를 많이 쓰니 4MB 제한 (서버에서도 검증).
+  Future<({List<String> headers, List<List<String>> rows})> parseSheetFile(
+      List<int> bytes) async {
+    final encoded = base64Encode(bytes);
+    final res = await sb.functions.invoke(
+      'import-csv-assist',
+      body: {'mode': 'parse-sheet', 'fileBase64': encoded},
+    );
+    final data = res.data;
+    if (data is Map && data['headers'] is List && data['rows'] is List) {
+      final headers = (data['headers'] as List)
+          .map((e) => e?.toString() ?? '')
+          .toList();
+      final rows = (data['rows'] as List)
+          .map((r) => (r as List).map((e) => e?.toString() ?? '').toList())
+          .toList();
+      return (headers: headers, rows: rows);
+    }
+    if (data is Map && data['error'] != null) {
+      throw Exception(data['error'].toString());
+    }
+    throw Exception('파일을 변환할 수 없어요.');
+  }
+
+  /// 파일 상단 row들을 통째로 보내서 (1) 어느 row가 헤더인지 (2) 컬럼 매핑이
+  /// 어떻게 되는지 추정 받기. 카드사 .xls는 상단 1~2 row가 제목인 경우가 많아서
+  /// AI가 직접 진짜 헤더 위치를 잡도록 함.
+  Future<CsvMapping> getCsvMapping({
+    required List<List<String>> firstRows,
+  }) async {
+    if (firstRows.isEmpty) throw Exception('파일 상단 row가 비어있어요.');
+    final res = await sb.functions.invoke(
+      'import-csv-assist',
+      body: {
+        'mode': 'mapping',
+        'firstRows': firstRows,
+      },
+    );
+    final data = res.data;
+    if (data is Map && data['mapping'] is Map) {
+      return CsvMapping.fromJson(
+          (data['mapping'] as Map).cast<String, dynamic>());
+    }
+    if (data is Map && data['error'] != null) {
+      throw Exception(data['error'].toString());
+    }
+    throw Exception('매핑 결과를 받을 수 없어요.');
+  }
+
+  /// 가맹점 리스트를 보내서 사용자 기존 카테고리/태그에 매핑.
+  /// 가맹점이 많으면 batch (200건씩 나눠 호출)로 처리.
+  Future<List<CsvClassifyItem>> getCsvClassification({
+    required List<String> merchants,
+  }) async {
+    if (merchants.isEmpty) return const [];
+
+    // 사용자 기존 카테고리/태그 조회 (분류 힌트로 전달).
+    final cats = await listCategories();
+    final majorList = cats.majors;
+    final subList = cats.flat
+        .map((c) => {'major': c.major, 'sub': c.sub})
+        .toList();
+
+    const batchSize = 200;
+    final results = <CsvClassifyItem>[];
+    for (var i = 0; i < merchants.length; i += batchSize) {
+      final chunk = merchants.sublist(
+          i, math.min(i + batchSize, merchants.length));
+      final res = await sb.functions.invoke(
+        'import-csv-assist',
+        body: {
+          'mode': 'classify',
+          'merchants': chunk,
+          'userMajors': majorList,
+          'userCategories': subList,
+        },
+      );
+      final data = res.data;
+      if (data is Map && data['classification'] is Map) {
+        final clf = (data['classification'] as Map).cast<String, dynamic>();
+        final items = (clf['items'] as List?) ?? const [];
+        for (final it in items) {
+          if (it is Map) {
+            results.add(CsvClassifyItem.fromJson(
+                it.cast<String, dynamic>()));
+          }
+        }
+      } else if (data is Map && data['error'] != null) {
+        throw Exception(data['error'].toString());
+      } else {
+        throw Exception('분류 결과를 받을 수 없어요.');
+      }
+    }
+    return results;
   }
 
   Future<PendingFixed> getPendingFixedExpenses(String month) async {

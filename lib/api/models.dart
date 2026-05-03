@@ -271,3 +271,105 @@ class PendingFixed {
     required this.pending,
   });
 }
+
+// ── AI CSV import 보조 ─────────────────────────────────────
+
+/// 카드사 CSV/XLS 매핑 추정 결과.
+/// headerRowIndex: 진짜 헤더 row의 0-based 인덱스 (파일 기준, 첫 줄=0).
+/// 컬럼 인덱스(date/amount/merchant 등)는 헤더 row의 컬럼 순서 기준.
+/// statusCol/excludedStatuses: 취소·반려 거래 자동 제외용. statusCol의 값이
+/// excludedStatuses 중 하나에 매칭되면 그 row 무시 (명세서 합계와 일치 위함).
+class CsvMapping {
+  final int headerRowIndex;
+  final int dateCol;
+  final int amountCol;
+  final int merchantCol;
+  final int? cardCol;
+  final int? memoCol;
+  final int? statusCol;
+  final List<String> excludedStatuses;
+  final String dateFormat; // "YYYY-MM-DD" 등 추정 형식
+  final String amountSign; // "positive" | "negative" | "absolute"
+  final String confidence; // "high" | "medium" | "low"
+  final String note;
+  const CsvMapping({
+    this.headerRowIndex = 0,
+    required this.dateCol,
+    required this.amountCol,
+    required this.merchantCol,
+    this.cardCol,
+    this.memoCol,
+    this.statusCol,
+    this.excludedStatuses = const [],
+    required this.dateFormat,
+    required this.amountSign,
+    required this.confidence,
+    required this.note,
+  });
+
+  factory CsvMapping.fromJson(Map<String, dynamic> j) => CsvMapping(
+        headerRowIndex: (j['headerRowIndex'] as num?)?.toInt() ?? 0,
+        dateCol: (j['dateCol'] as num).toInt(),
+        amountCol: (j['amountCol'] as num).toInt(),
+        merchantCol: (j['merchantCol'] as num).toInt(),
+        cardCol: (j['cardCol'] as num?)?.toInt(),
+        memoCol: (j['memoCol'] as num?)?.toInt(),
+        statusCol: (j['statusCol'] as num?)?.toInt(),
+        excludedStatuses: (j['excludedStatuses'] as List?)
+                ?.map((e) => e?.toString().trim() ?? '')
+                .where((s) => s.isNotEmpty)
+                .toList() ??
+            const [],
+        dateFormat: (j['dateFormat'] as String?) ?? 'auto',
+        amountSign: (j['amountSign'] as String?) ?? 'absolute',
+        confidence: (j['confidence'] as String?) ?? 'medium',
+        note: (j['note'] as String?) ?? '',
+      );
+}
+
+/// 가맹점 한 건 분류 결과.
+class CsvClassifyItem {
+  final String merchant;
+  final String major;
+  final String? sub;
+  final bool isNewMajor;
+  final bool isNewSub;
+  final String confidence; // "high" | "medium" | "low"
+  const CsvClassifyItem({
+    required this.merchant,
+    required this.major,
+    this.sub,
+    required this.isNewMajor,
+    required this.isNewSub,
+    required this.confidence,
+  });
+
+  factory CsvClassifyItem.fromJson(Map<String, dynamic> j) => CsvClassifyItem(
+        merchant: j['merchant'] as String,
+        major: j['major'] as String,
+        sub: (j['sub'] as String?)?.trim().isEmpty == true
+            ? null
+            : j['sub'] as String?,
+        isNewMajor: j['isNewMajor'] == true,
+        isNewSub: j['isNewSub'] == true,
+        confidence: (j['confidence'] as String?) ?? 'medium',
+      );
+
+  CsvClassifyItem copyWith({
+    String? major,
+    String? sub,
+    bool clearSub = false,
+    bool? isNewMajor,
+    bool? isNewSub,
+    String? confidence,
+  }) {
+    return CsvClassifyItem(
+      merchant: merchant,
+      major: major ?? this.major,
+      sub: clearSub ? null : (sub ?? this.sub),
+      isNewMajor: isNewMajor ?? this.isNewMajor,
+      isNewSub: isNewSub ?? this.isNewSub,
+      confidence: confidence ?? this.confidence,
+    );
+  }
+}

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:go_router/go_router.dart';
 
 import '../api/api.dart';
 import '../api/models.dart';
@@ -34,9 +35,9 @@ class _ImportScreenState extends State<ImportScreen> {
   static const _csvHeader =
       '날짜,금액,카테고리,가맹점,카드/결제수단,태그,메모,고정비';
   static const _csvTemplate = '$_csvHeader\n'
-      '2026-05-01,5800,식비/카페,스타벅스,신한카드,카페,,아니오\n'
+      '2026-05-01,5800,식비/카페,스타벅스,체크카드,카페,,아니오\n'
       '2026-05-01,18500,식비/카페,쿠팡이츠,,배달,점심,아니오\n'
-      '2026-05-01,700000,주거,월세,국민카드,월세,,예\n';
+      '2026-05-01,700000,주거,월세,자동이체,월세,,예\n';
 
   static const _webUrl = 'https://billionaire-chi.vercel.app/settings/import';
 
@@ -266,6 +267,26 @@ class _ImportScreenState extends State<ImportScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
+            _aiImportCard(),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(child: Divider(color: AppColors.line2, height: 1)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Text(
+                      '또는 우리 양식 CSV로 직접',
+                      style:
+                          TextStyle(fontSize: 11.5, color: AppColors.text3),
+                    ),
+                  ),
+                  Expanded(child: Divider(color: AppColors.line2, height: 1)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
             _stepCard(
               step: '1',
               title: '템플릿 받기',
@@ -315,6 +336,65 @@ class _ImportScreenState extends State<ImportScreen> {
             const SizedBox(height: 18),
             _formatGuide(),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _aiImportCard() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => context.go('/settings/import/ai'),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+          decoration: BoxDecoration(
+            color: AppColors.primaryWeak,
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.auto_awesome,
+                    size: 20, color: Colors.white),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'AI로 카드사 CSV 자동 정리',
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.text,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '카드사 이용내역을 그대로 올리면 카테고리까지 자동 분류',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.text2,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right,
+                  size: 22, color: AppColors.primaryStrong),
+            ],
+          ),
         ),
       ),
     );
@@ -623,7 +703,7 @@ class _ImportScreenState extends State<ImportScreen> {
           ),
           const SizedBox(height: 6),
           _guideRow('가맹점', '거래처 이름'),
-          _guideRow('카드/결제수단', '예: 신한카드'),
+          _guideRow('카드/결제수단', '예: 체크카드, 자동이체'),
           _guideRow('태그', '카테고리 하위, 새 태그면 자동 추가됨'),
           _guideRow('메모', '자유 텍스트'),
           _guideRow('고정비', '"예" 또는 "아니오" (기본 아니오)'),

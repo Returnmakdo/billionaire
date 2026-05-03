@@ -22,6 +22,7 @@ class TransactionsScreen extends StatefulWidget {
     this.initialMonth,
     this.initialMajor,
     this.initialSub,
+    this.initialSubIsNull = false,
     this.initialQ,
     this.initialFixed,
   });
@@ -29,6 +30,7 @@ class TransactionsScreen extends StatefulWidget {
   final String? initialMonth;
   final String? initialMajor;
   final String? initialSub;
+  final bool initialSubIsNull;
   final String? initialQ;
   final String? initialFixed; // '', 'true', 'false'
 
@@ -49,6 +51,7 @@ enum _TxSort {
 class _TransactionsScreenState extends State<TransactionsScreen> {
   String _major = '';
   String _sub = '';
+  bool _subIsNull = false;
   String _q = '';
   String _fixed = ''; // '', 'true', 'false'
 
@@ -85,6 +88,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     }
     _major = widget.initialMajor ?? '';
     _sub = widget.initialSub ?? '';
+    _subIsNull = widget.initialSubIsNull;
     _q = widget.initialQ ?? '';
     _fixed = widget.initialFixed ?? '';
     _qCtrl = TextEditingController(text: _q);
@@ -114,6 +118,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   bool get _hasFilter =>
       _major.isNotEmpty ||
       _sub.isNotEmpty ||
+      _subIsNull ||
       _q.isNotEmpty ||
       _fixed.isNotEmpty ||
       _minAmount != null ||
@@ -128,6 +133,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     final changed = widget.initialMonth != oldWidget.initialMonth ||
         widget.initialMajor != oldWidget.initialMajor ||
         widget.initialSub != oldWidget.initialSub ||
+        widget.initialSubIsNull != oldWidget.initialSubIsNull ||
         widget.initialQ != oldWidget.initialQ ||
         widget.initialFixed != oldWidget.initialFixed;
     if (!changed) return;
@@ -137,6 +143,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     setState(() {
       _major = widget.initialMajor ?? '';
       _sub = widget.initialSub ?? '';
+      _subIsNull = widget.initialSubIsNull;
       _q = widget.initialQ ?? '';
       _fixed = widget.initialFixed ?? '';
       _qCtrl.text = _q;
@@ -205,7 +212,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       final txs = await Api.instance.listTransactions(
         month: _month,
         major: _major.isEmpty ? null : _major,
-        sub: _sub.isEmpty ? null : _sub,
+        sub: _subIsNull ? null : (_sub.isEmpty ? null : _sub),
+        subIsNull: _subIsNull,
         q: _q.isEmpty ? null : _q,
         fixed: _fixed == 'true'
             ? true
@@ -261,6 +269,23 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     });
   }
 
+  /// FAB 누르면 "수기 입력 / 명세서 가져오기" 두 옵션 시트.
+  Future<void> _showAddSheet() async {
+    if (_cats == null) return;
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (_) => _AddSheet(),
+    );
+    if (!mounted || action == null) return;
+    if (action == 'manual') {
+      await _openModal();
+    } else if (action == 'import') {
+      context.go('/settings/import/ai');
+    }
+  }
+
   Future<void> _openModal([Tx? tx]) async {
     if (_cats == null) return;
     final result = await showTxModal(
@@ -298,6 +323,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     final parts = <String>[];
     if (_major.isNotEmpty) parts.add(_major);
     if (_sub.isNotEmpty) parts.add(_sub);
+    if (_subIsNull) parts.add('태그 없음');
     if (_fixed == 'true') parts.add('고정비');
     if (_fixed == 'false') parts.add('변동비');
     return parts.isEmpty
@@ -309,6 +335,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     setState(() {
       _major = '';
       _sub = '';
+      _subIsNull = false;
       _q = '';
       _fixed = '';
       _minAmount = null;
@@ -388,7 +415,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       backgroundColor: AppColors.bg,
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_transactions',
-        onPressed: () => _openModal(),
+        onPressed: _showAddSheet,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
@@ -425,6 +452,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       child: _toolbar(cats),
                     ),
                     if (_sub.isNotEmpty ||
+                        _subIsNull ||
                         _q.isNotEmpty ||
                         _minAmount != null ||
                         _maxAmount != null ||
@@ -439,6 +467,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                             if (_sub.isNotEmpty)
                               _Chip(
                                 label: '세부: $_sub',
+                                onClear: _clearFilters,
+                              ),
+                            if (_subIsNull)
+                              _Chip(
+                                label: '태그 없음',
                                 onClear: _clearFilters,
                               ),
                             if (_q.isNotEmpty)
@@ -557,6 +590,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   Widget _toolbar(CategoriesData cats) {
     final majors = ['', ...cats.majors];
+    // 선택된 major의 태그 옵션. major 선택 X면 빈 리스트 → sub 드랍다운 숨김.
+    final subsForMajor = _major.isEmpty
+        ? const <String>[]
+        : (cats.byMajor[_major]?.map((c) => c.sub).toList() ?? const []);
+    // 현재 sub dropdown 값 (3가지 케이스: 전체 '', 태그 없음 sentinel, sub name)
+    const nullSentinel = '__null__';
+    final subValue = _subIsNull
+        ? nullSentinel
+        : (subsForMajor.contains(_sub) ? _sub : '');
     return Column(
       children: [
         TextField(
@@ -585,6 +627,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   setState(() {
                     _major = v;
                     _sub = '';
+                    _subIsNull = false;
                   });
                   _reload();
                 },
@@ -612,6 +655,31 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             ),
           ],
         ),
+        if (_major.isNotEmpty && subsForMajor.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          AppDropdown<String>(
+            value: subValue,
+            items: [
+              const AppDropdownItem(value: '', label: '전체 태그'),
+              const AppDropdownItem(
+                  value: nullSentinel, label: '(태그 없음)'),
+              for (final s in subsForMajor)
+                AppDropdownItem(value: s, label: s),
+            ],
+            onChanged: (v) {
+              setState(() {
+                if (v == nullSentinel) {
+                  _subIsNull = true;
+                  _sub = '';
+                } else {
+                  _subIsNull = false;
+                  _sub = v;
+                }
+              });
+              _reload();
+            },
+          ),
+        ],
       ],
     );
   }
@@ -659,18 +727,29 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             EmptyCard(
               icon: hasFilter
                   ? Icons.filter_alt_off_outlined
-                  : Icons.receipt_long_outlined,
+                  : (_isFirstUser
+                      ? Icons.auto_awesome
+                      : Icons.receipt_long_outlined),
               title: hasFilter
                   ? '조건에 맞는 거래가 없어요'
                   : (_isFirstUser
-                      ? '아직 등록된 거래가 없어요'
+                      ? '카드 이용내역으로 한 번에 시작해보세요'
                       : '이번 달에 등록된 거래가 없어요'),
-              body: '오른쪽 아래 + 추가 버튼으로 거래를 등록할 수 있어요.',
-              secondaryActionLabel:
-                  (!hasFilter && _isFirstUser) ? '도움말 보기' : null,
-              onSecondaryAction: (!hasFilter && _isFirstUser)
-                  ? () => context.go('/settings/help')
+              body: hasFilter
+                  ? null
+                  : (_isFirstUser
+                      ? 'AI가 카드 명세서를 정리해서 거래·카테고리까지 자동으로 등록해드려요.'
+                      : '오른쪽 아래 + 추가 버튼으로 거래를 등록할 수 있어요.'),
+              actionLabel: (!hasFilter && _isFirstUser)
+                  ? '명세서로 한 번에 가져오기'
                   : null,
+              onAction: (!hasFilter && _isFirstUser)
+                  ? () => context.go('/settings/import/ai')
+                  : null,
+              secondaryActionLabel:
+                  (!hasFilter && _isFirstUser) ? '직접 입력' : null,
+              onSecondaryAction:
+                  (!hasFilter && _isFirstUser) ? _openModal : null,
             )
           else
             AppCard(
@@ -1142,6 +1221,113 @@ class _SegBtn extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// FAB 누르면 뜨는 "수기 입력 / 명세서 가져오기" 시트.
+class _AddSheet extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.line,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+            const SizedBox(height: 8),
+            _option(
+              context,
+              icon: Icons.edit_outlined,
+              title: '직접 입력',
+              subtitle: '한 건씩 빠르게 추가',
+              value: 'manual',
+            ),
+            Divider(height: 1, color: AppColors.line2),
+            _option(
+              context,
+              icon: Icons.auto_awesome,
+              title: '명세서로 한 번에 가져오기',
+              subtitle: 'AI가 카드 이용내역을 자동으로 정리',
+              value: 'import',
+              accent: true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _option(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String value,
+    bool accent = false,
+  }) {
+    return InkWell(
+      onTap: () => Navigator.of(context).pop(value),
+      borderRadius: BorderRadius.circular(AppRadius.xl),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: accent ? AppColors.primary : AppColors.primaryWeak,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: accent ? Colors.white : AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: AppColors.text3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, size: 20, color: AppColors.text4),
+          ],
+        ),
       ),
     );
   }

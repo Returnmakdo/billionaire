@@ -282,7 +282,7 @@ class _TxModalState extends State<_TxModal> {
                     _fieldWithChips(
                       controller: _card,
                       label: '카드/결제수단',
-                      hint: '예: KB, 현대, 현금',
+                      hint: '예: 체크카드, 현금',
                       options: widget.suggestions.cards,
                     ),
                     const SizedBox(height: 12),

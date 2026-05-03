@@ -68,6 +68,83 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  /// 우상단 "건너뛰기" 누르면 명세서 가져오기 옵션 한 번 더 안내 후 진행.
+  /// 도움말에서 진입한 경우엔 묻지 않고 바로 닫기.
+  Future<void> _onSkip() async {
+    if (widget.fromHelp) {
+      _finish();
+      return;
+    }
+    final wantImport = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        backgroundColor: AppColors.surface,
+        title: Text(
+          '어떻게 시작할까요?',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.text,
+          ),
+        ),
+        content: Text(
+          '카드 명세서를 한 번에 올려도 되고, 바로 시작하고 나중에 추가해도 돼요.',
+          style: TextStyle(
+            fontSize: 13.5,
+            color: AppColors.text2,
+            height: 1.55,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.text2,
+              textStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            child: const Text('바로 시작'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              textStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            child: const Text('명세서로 시작'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (wantImport == true) {
+      await _finishWithImport();
+    } else if (wantImport == false) {
+      // 명시적으로 "나중에" 선택한 경우만 진행 (다이얼로그 바깥 탭으로 닫은 경우엔 가만히)
+      await _finish();
+    }
+  }
+
+  /// 마지막 슬라이드에서 "명세서로 한 번에 가져오기" 누르면 onboarding 종료
+  /// 처리 + 바로 import 화면으로.
+  Future<void> _finishWithImport() async {
+    if (!widget.fromHelp) {
+      try {
+        await AuthService.markOnboardingSeen();
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    context.go('/settings/import/ai');
+  }
+
   void _next() {
     if (_page < _slides.length - 1) {
       _ctrl.nextPage(
@@ -75,7 +152,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeOut,
       );
     } else {
-      _finish();
+      // 마지막 슬라이드의 "시작하기"도 같은 안내 다이얼로그.
+      _onSkip();
     }
   }
 
@@ -94,7 +172,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _finish,
+                    onPressed: _onSkip,
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.text3,
                       padding: const EdgeInsets.symmetric(

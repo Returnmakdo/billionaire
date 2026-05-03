@@ -13,6 +13,7 @@ import 'screens/categories_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/fixed_expenses_screen.dart';
 import 'screens/ai_import_screen.dart';
+import 'screens/changelog_screen.dart';
 import 'screens/help_screen.dart';
 import 'screens/import_screen.dart';
 import 'screens/theme_settings_screen.dart';
@@ -140,6 +141,10 @@ class _BudgetAppState extends State<BudgetApp> {
             GoRoute(
               path: 'theme',
               builder: (_, _) => const ThemeSettingsScreen(),
+            ),
+            GoRoute(
+              path: 'changelog',
+              builder: (_, _) => const ChangelogScreen(),
             ),
           ],
         ),

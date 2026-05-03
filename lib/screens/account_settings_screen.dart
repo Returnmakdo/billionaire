@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show User;
 
+import '../api/api.dart';
 import '../auth.dart';
 import '../theme.dart';
 import '../utils/nav_back.dart';
@@ -28,6 +30,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   bool _hasSymbol = false;
 
   bool _deleting = false;
+  bool _wiping = false;
+
+  // 데이터 초기화 버튼은 이 계정에서만 노출 (개발/테스트용).
+  static const _wipeAllowedEmail = 'cldud970@naver.com';
 
   @override
   void initState() {
@@ -113,6 +119,28 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     }
   }
 
+  Future<void> _wipeData() async {
+    final ok = await confirmDialog(
+      context,
+      title: '데이터 초기화',
+      message: '거래내역·카테고리·예산·정기지출·AI 분석을 모두 삭제하고 \'기타\' 카테고리만 남깁니다. 계정은 유지돼요. 복구할 수 없어요.',
+      confirmText: '초기화',
+      danger: true,
+    );
+    if (!ok || !mounted) return;
+    setState(() => _wiping = true);
+    try {
+      await Api.instance.wipeMyData();
+      if (!mounted) return;
+      showToast(context, '데이터를 초기화했어요');
+      context.go('/dashboard');
+    } catch (e) {
+      if (mounted) showToast(context, errorMessage(e), error: true);
+    } finally {
+      if (mounted) setState(() => _wiping = false);
+    }
+  }
+
   Future<void> _deleteAccount() async {
     final email = AuthService.currentUser?.email ?? '';
     final confirmed = await showDialog<bool>(
@@ -163,6 +191,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             if (_isEmailUser) ...[
               const SizedBox(height: 14),
               _passwordCard(),
+            ],
+            if (user?.email == _wipeAllowedEmail) ...[
+              const SizedBox(height: 14),
+              _wipeCard(),
             ],
             const SizedBox(height: 32),
             Align(
@@ -292,6 +324,53 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               ),
               onPressed: _savingName ? null : _saveName,
               child: Text(_savingName ? '저장 중...' : '저장'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _wipeCard() {
+    return AppCard(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.cleaning_services_outlined,
+                  size: 16, color: AppColors.warning),
+              const SizedBox(width: 6),
+              Text('데이터 초기화 (테스트용)',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: AppColors.text3,
+                    fontWeight: FontWeight.w600,
+                  )),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '거래내역·카테고리·예산·정기지출·AI 분석을 모두 지우고 \'기타\' 카테고리만 남겨서 신규 사용자 상태로 되돌려요. 계정은 유지돼요.',
+            style: TextStyle(
+              fontSize: 12.5,
+              color: AppColors.text2,
+              height: 1.55,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: OutlinedButton(
+              onPressed: _wiping ? null : _wipeData,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.warning,
+                side: BorderSide(color: AppColors.warning),
+                minimumSize: const Size(80, 40),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              child: Text(_wiping ? '초기화 중...' : '초기화'),
             ),
           ),
         ],

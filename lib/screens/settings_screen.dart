@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../api/api.dart';
+import '../data/changelog.dart';
 import '../theme.dart';
 import '../utils/csv_download_stub.dart'
     if (dart.library.html) '../utils/csv_download_web.dart';
@@ -17,6 +18,26 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _exporting = false;
+  bool _hasUnseenChangelog = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkChangelog();
+    changelogSeenSignal.addListener(_checkChangelog);
+  }
+
+  @override
+  void dispose() {
+    changelogSeenSignal.removeListener(_checkChangelog);
+    super.dispose();
+  }
+
+  Future<void> _checkChangelog() async {
+    final unseen = await hasUnseenChangelog();
+    if (!mounted) return;
+    setState(() => _hasUnseenChangelog = unseen);
+  }
 
   Future<void> _exportCsv() async {
     setState(() => _exporting = true);
@@ -107,6 +128,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 subtitle: '소개 슬라이드 + 화면별 사용법',
                 onTap: () => context.go('/settings/help'),
               ),
+              _MenuItem(
+                icon: Icons.campaign_outlined,
+                title: '업데이트 소식',
+                subtitle: '새로 추가된 기능과 개선사항',
+                showBadge: _hasUnseenChangelog,
+                onTap: () => context.go('/settings/changelog'),
+              ),
             ]),
           ],
         ),
@@ -145,12 +173,14 @@ class _MenuItem {
     this.subtitle,
     this.trailing,
     this.onTap,
+    this.showBadge = false,
   });
   final IconData icon;
   final String title;
   final String? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
+  final bool showBadge;
 }
 
 class _MenuRow extends StatelessWidget {
@@ -179,15 +209,36 @@ class _MenuRow extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(18, 16, 16, 16),
         child: Row(
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.primaryWeak,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(item.icon, size: 19, color: AppColors.primary),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryWeak,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(item.icon,
+                      size: 19, color: AppColors.primary),
+                ),
+                if (item.showBadge)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: AppColors.danger,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: AppColors.surface, width: 1.5),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: 14),
             Expanded(

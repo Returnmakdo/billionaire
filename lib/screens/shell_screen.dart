@@ -43,7 +43,7 @@ class ShellScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigationShell,
+      body: SafeArea(bottom: false, child: navigationShell),
       bottomNavigationBar: NavigationBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
